@@ -1,0 +1,7 @@
+**
+!_migrations/
+!models/
+!ontology_indexing
+!.env
+!*.py
+!requirements.txt

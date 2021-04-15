@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+
+  data_infrastruct:
+    build: .
+    ports:
+      - '5000:5000'
+    depends_on:
+      - postgres_sc3_backend
+    container_name: data_infrastruct
+    env_file: # Pass the environment variables in the .env file to the container
+      - .env
+    networks:
+      - network_sc3_backend
+
+
+
+  postgres_sc3_backend:
+    image: "postgres:11-alpine"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - 'postgres:/usr/share/postgresql/data'
+    networks:
+    - network_sc3_backend
+
+volumes:
+  esdata01:
+    driver: local
+  postgres:
+    driver: local
+
+networks:
+  network_sc3_backend:
+    external:
+      name: network_sc3_backend
