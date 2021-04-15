@@ -54,6 +54,19 @@ b) local : This is intended to be used as development environment. running `pyth
 
 
 
+# Setting up local development 
+
+1) Clone this git repo.
+2) run `sh initializeEnv.sh`
+-> this will create the .env file
+3) run `docker-compose up -d postgres_sc3_backend` -> this will initialize the postgres process for the database
+4) run `flask db init`
+5) run `flask db migrate`
+6) run `flask db upgrade`
+7) run `python app.py` or `python3 app.py`
+
+Now you should be able to open your browser at http://localhost:5000/ and see just a message "Ontology Data Infrastructure"
+
 
   
  
