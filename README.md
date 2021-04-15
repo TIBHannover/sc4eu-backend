@@ -12,6 +12,8 @@ We have the .env.example file which you can use to create the .env file
 The .env file initializes environment variable for the service, such as the port the application is running on and 
 the postgres variables.
 
+You can use the provided script `initalizeEnv.sh` which will make a copy ot the .env.example as .env file (it checks if the file exisits, if so no copy will be made)
+
 We have two modes when we want to work with this service
 
 1) containerized: running `docker-compose up -d` which will use the container name and setup the database uri
