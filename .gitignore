@@ -16,7 +16,7 @@ _migrations
 .venv
 venv/
 ENV/
-
+p3env/
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
