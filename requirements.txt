@@ -7,7 +7,7 @@ Flask-Cors
 flask_sqlalchemy
 sqlalchemy_utils
 psycopg2-binary
-marshmallow==3.0.0
+marshmallow==3.0.0rc5
 webargs==5.4.0
 flask-marshmallow==0.10.1
 BaseHash
