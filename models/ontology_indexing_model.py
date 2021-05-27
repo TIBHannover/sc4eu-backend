@@ -44,7 +44,6 @@ class OntologyIndexingModel(db.Model, ModelMixin):
 
     @classmethod
     def initializeDefaultData(cls):
-        print("TODO >>> INITIALIZAING DEFAULT DATASETS")
         # test with example data first.
         ontology_name = "EXAMPLE"
         results = open("defaultData/example.ttl", 'r')
