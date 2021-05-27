@@ -130,7 +130,9 @@ class UserModel(db.Model, ModelMixin):
                 # returning an object for the express server to create the jwt token
                 user = db.session.query(UserModel).filter_by(email_address=email).first()
                 print(user, flush=True)
-                return {"user_id": user.uuid}
+                print(user.uuid)
+                print(str(user.uuid))
+                return {"user_id": str(user.uuid)}
             else:
                 return {"error": "User already exists"}
 

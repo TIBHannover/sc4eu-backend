@@ -41,3 +41,8 @@ class OntologyIndexingModel(db.Model, ModelMixin):
     @classmethod
     def get_ontology_index(cls):
         return OntologyIndexingModel.query.order_by(OntologyIndexingModel.created_at.desc()).all()
+
+
+    @classmethod
+    def initializeDefaultData(cls):
+        print("TODO >>> INITIALIZAING DEFAULT DATASETS")
