@@ -42,7 +42,36 @@ class OntologyIndexingModel(db.Model, ModelMixin):
     def get_ontology_index(cls):
         return OntologyIndexingModel.query.order_by(OntologyIndexingModel.created_at.desc()).all()
 
-
     @classmethod
     def initializeDefaultData(cls):
         print("TODO >>> INITIALIZAING DEFAULT DATASETS")
+        # test with example data first.
+        ontology_name = "EXAMPLE"
+        results = open("defaultData/example.ttl", 'r')
+        data = results.read()
+        results.close()
+
+        lookup_type = 'local'
+        access_type = 'public'
+        lookup_path = 'internal'
+        does_exist = db.session.query(OntologyIndexingModel.name).filter_by(
+            name=ontology_name).first() is not None
+
+        if does_exist:
+            print("Ontology already exists: " + ontology_name)
+        else:
+            cls.integrate_new_ontology(name=ontology_name, lookup_type=lookup_type, access_type=access_type,
+                                       path_to_data=lookup_path, description="EXAMPLE", content=data)
+
+        # ######### UPLOADING DIGITAL REFERENCE
+        ontology_name = "DR-TEST"
+        results = open("defaultData/DigitalReference.ttl", 'r')
+        data = results.read()
+        results.close()
+        does_exist = db.session.query(OntologyIndexingModel.name).filter_by(
+            name=ontology_name).first() is not None
+        if does_exist:
+            print("Ontology already exists: " + ontology_name)
+        else:
+            cls.integrate_new_ontology(name=ontology_name, lookup_type=lookup_type, access_type=access_type,
+                                       path_to_data=lookup_path, description="DIGITAL REFERENCE TEST", content=data)

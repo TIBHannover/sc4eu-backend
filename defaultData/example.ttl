@@ -1,0 +1,39 @@
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix wot:   <http://xmlns.com/wot/0.1/> .
+@prefix vs:    <http://www.w3.org/2003/06/sw-vocab-status/ns#> .
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+@prefix dc:    <http://purl.org/dc/elements/1.1/> .
+
+
+
+<http://xmlns.com/foaf/0.1/> rdf:type owl:Ontology ;
+                                dc:description "SOME DESCRIPTION TESTING"@en ;
+                                dc:title "TESTING TITLE FETCH"@en ;
+                                owl:versionInfo "Version 1.1"@en .
+
+
+foaf:Person  a owl:Class;
+          rdfs:label "Person"@de.
+
+
+
+foaf:name a owl:DatatypeProperty;
+  rdfs:label "hasName";
+  rdfs:domain foaf:Person;
+  rdfs:range rdfs:Literal.
+
+foaf:lastName a owl:DatatypeProperty;
+  rdfs:label "hasLastName";
+  rdfs:domain foaf:Person;
+  rdfs:range rdfs:Literal.
+
+foaf:Person rdfs:subClassOf foaf:Agent.
+foaf:Person rdfs:subClassOf foaf:AgentSmith.
+
+foaf:creates a owl:ObjectProperty;
+  rdfs:label "creates";
+  rdfs:domain foaf:Person;
+  rdfs:range foaf:Document.
+
