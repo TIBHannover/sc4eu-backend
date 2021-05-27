@@ -216,8 +216,8 @@ class UserModel(db.Model, ModelMixin):
             # add to db
             db.session.add(new_entry)
             db.session.commit()
-            return {"task": "create user from email", "success": True, "user_id": new_entry.uuid,
-                    "bToken": sha256_crypt.encrypt(new_entry.uuid)}
+            return {"task": "create user from email", "success": True, "user_id": str(new_entry.uuid),
+                    "bToken": sha256_crypt.encrypt(str(new_entry.uuid))}
         else:
             return {"task": "create user from email", "success": False, "error": "Invalid Parameters"}
 
