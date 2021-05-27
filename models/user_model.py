@@ -61,11 +61,14 @@ class UserModel(db.Model, ModelMixin):
         token_valid = sha256_crypt.verify(user_id, token)
         if token_valid:
             user = UserModel.query.filter_by(uuid=user_id).first()
-            name = user.display_name
-            email = user.email_address
-            g = Gravatar(email)
-            gravatar_id = g.email_hash
-            return {"displayName": name, "gravatarId": gravatar_id, "userId": user.uuid}
+            if user:
+                name = user.display_name
+                email = user.email_address
+                g = Gravatar(email)
+                gravatar_id = g.email_hash
+                return {"displayName": name, "gravatarId": gravatar_id, "userId": user.uuid}
+            else:
+                return {"error": "Invalid Token or User"}
         else:
             return {"error": "Invalid Token"}
 
