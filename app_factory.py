@@ -3,10 +3,12 @@ from flask import make_response, jsonify
 from util import ListConverter, NumpyEncoder
 from flask_cors import CORS
 from ontology_indexing import ontology_indexing_blueprint
+from user_views import users_blueprint
 from extensions import db, migrate, app
+
 import os
 
-DEFAULT_BLUEPRINTS = [ontology_indexing_blueprint]
+DEFAULT_BLUEPRINTS = [ontology_indexing_blueprint, users_blueprint]
 
 
 def create_app(blueprints=None):
@@ -36,15 +38,22 @@ def setup_sqlalchemy_uri(app_object):
     containerized = os.environ["CONTAINERIZED"]
     container_name = os.environ["CONTAINER_NAME"]
 
-    if not uri:
-        domain = 'localhost'
-        if containerized == "True":
-            domain = container_name
-        database_url = f'postgresql+psycopg2://{user}:{passwd}@{domain}:5432/{db}'
-        app_object.config["SQLALCHEMY_DATABASE_URI"] = database_url
-
+    testing_env = True
+    if testing_env:
+        app_object.config[
+            "SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://sc3_postgres_user:sc3_postgres_password@localhost:5432/sc3_database"
     else:
-        app_object.config["SQLALCHEMY_DATABASE_URI"] = os.environ["SQLALCHEMY_DATABASE_URI"]
+
+        if not uri:
+            domain = 'localhost'
+            if containerized == "True":
+                domain = container_name
+
+            database_url = f'postgresql+psycopg2://{user}:{passwd}@{domain}:5432/{db}'
+            app_object.config["SQLALCHEMY_DATABASE_URI"] = database_url
+
+        else:
+            app_object.config["SQLALCHEMY_DATABASE_URI"] = os.environ["SQLALCHEMY_DATABASE_URI"]
 
     print("Setup URI FOR DB:" + app_object.config["SQLALCHEMY_DATABASE_URI"])
 
@@ -92,7 +101,7 @@ def configure_encryption(app_obj):
 def configure_error_handlers(app_obj):
     @app_obj.errorhandler(404)
     def not_found(error):
-        return make_response(jsonify({'error': 'Not found'}), 404)
+        return make_response(jsonify({'error': 'Page Not found'}), 404)
 
     # Return validation errors as JSON
     @app_obj.errorhandler(422)

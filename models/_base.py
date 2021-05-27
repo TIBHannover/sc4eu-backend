@@ -14,6 +14,8 @@ class ModelMixin(object):
     created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
     updated_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
 
+
+
     def save(self):
         try:
             self.updated_at = datetime.utcnow()

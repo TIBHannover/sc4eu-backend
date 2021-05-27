@@ -13,3 +13,6 @@ flask-marshmallow==0.10.1
 BaseHash
 Flask-Migrate
 python-dotenv
+passlib
+flask_user
+libgravatar
