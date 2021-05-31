@@ -1,8 +1,8 @@
-py2neo
+#py2neo
 numpy
 flask
 werkzeug
-tables
+#tables
 Flask-Cors
 flask_sqlalchemy
 sqlalchemy_utils
