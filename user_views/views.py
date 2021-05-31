@@ -65,12 +65,9 @@ class UserAPILogin(MethodView):
         # GitHub auth
         if auth_type == "AUTH_GITHUB":
             # we assume this is a token based authorization
-            print("Working on that")
-            print(request.json)
             user = UserModel.find_or_create_user(
                 {'email': request.json['email'], 'display_name': request.json['displayName'],
                  'auth_type': request.json['auth_type']})
-
             res = UserModel.find_or_login_user({'user_id': user['user_id'],
                                                 'auth_type': request.json['auth_type']})
 

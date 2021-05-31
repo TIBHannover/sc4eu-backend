@@ -86,6 +86,7 @@ class UserModel(db.Model, ModelMixin):
                 return {"error": "Error: No such user exists"}
 
         if params['auth_type'] == AUTH_GITHUB:
+
             res = {'user_id': params['user_id']}
             res['bToken'] = sha256_crypt.encrypt(res['user_id'])
             return res
@@ -94,17 +95,13 @@ class UserModel(db.Model, ModelMixin):
 
     @classmethod
     def get_user_from_token(cls, params):
-        print(params)
         return {"error": "Error: Not implemented Yet~! "}
 
     @classmethod
     def find_or_create_user(cls, params):
         # params is an object holding information
-        print("CALLING FIND OR CREATE FUNC")
-        print(params)
 
         if params['auth_type'] == AUTH_GITHUB:
-            print("we received an object from gitHub, lets try to validate the user")
             exists = cls.exists_in_db(params['email'])
             if not exists:
                 cls.create_user(params)
@@ -132,9 +129,6 @@ class UserModel(db.Model, ModelMixin):
             if correct_credentials:
                 # returning an object for the express server to create the jwt token
                 user = db.session.query(UserModel).filter_by(email_address=email).first()
-                print(user, flush=True)
-                print(user.uuid)
-                print(str(user.uuid))
                 return {"user_id": str(user.uuid)}
             else:
                 return {"error": "User already exists"}
@@ -142,8 +136,7 @@ class UserModel(db.Model, ModelMixin):
         if auth_type == AUTH_GITHUB:
             # we receive the jwt token?
             user = db.session.query(UserModel).filter_by(email_address=email).first()
-            print(user, flush=True)
-            return {"user_id": user.uuid}
+            return {"user_id": str(user.uuid)}
         else:
             return False
 
@@ -166,9 +159,7 @@ class UserModel(db.Model, ModelMixin):
     # This method should only be allowed to be used for users with role ADMIN!
     @classmethod
     def getAllUsers(cls):
-        print("Want All Users from DB")
         result = UserModel.query.order_by(UserModel.created_at.desc()).all()
-        print(result)
         if len(result) == 0:
             return False
         else:
@@ -181,10 +172,22 @@ class UserModel(db.Model, ModelMixin):
         auth_type = params['auth_type']
         if auth_type == AUTH_LOCAL:
             res = cls.create_user_from_email(params)
-            print("expecting local user login , having email and passwd, and default mail not validated")
             return res
         if auth_type == AUTH_GITHUB:
-            print("Expecting GITHUB Auth with Email been validated")
+            return cls.create_user_github(params)
+
+    @classmethod
+    def create_user_github(cls, params):
+        new_entry = UserModel()
+        new_entry.auth_type = params['auth_type']
+        new_entry.display_name = params['display_name']
+        new_entry.email_address = params['email']
+        # // assign default role
+        _user_role = Role.query.filter(Role.name == 'User').first()
+        new_entry.roles = [_user_role]  # default user role
+        # add to db
+        db.session.add(new_entry)
+        db.session.commit()
 
     @classmethod
     def create_user_from_email(cls, params):
