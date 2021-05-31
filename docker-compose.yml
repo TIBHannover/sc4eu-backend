@@ -11,6 +11,8 @@ services:
     container_name: data_infrastruct
     env_file: # Pass the environment variables in the .env file to the container
       - .env
+    environment:
+      - CONTAINERIZED=True
     networks:
       - network_sc3_backend
 
@@ -27,7 +29,7 @@ services:
     volumes:
       - 'postgres:/usr/share/postgresql/data'
     networks:
-    - network_sc3_backend
+      - network_sc3_backend
 
 volumes:
   esdata01:

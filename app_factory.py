@@ -37,7 +37,7 @@ def setup_sqlalchemy_uri(app_object):
     containerized = os.environ["CONTAINERIZED"]
     container_name = os.environ["CONTAINER_NAME"]
 
-    testing_env = True
+    testing_env = False
     if testing_env:
         app_object.config[
             "SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://sc3_postgres_user:sc3_postgres_password@localhost:5432/sc3_database"

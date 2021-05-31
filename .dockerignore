@@ -1,7 +1,9 @@
 **
 !_migrations/
+!defaultData/
 !models/
 !ontology_indexing
+!user_views
 !.env
 !*.py
 !requirements.txt
