@@ -64,7 +64,7 @@ class OntologyIndexingModel(db.Model, ModelMixin):
 
         # ######### UPLOADING DIGITAL REFERENCE
         ontology_name = "DR-TEST"
-        results = open("defaultData/DigitalReference.ttl", 'r')
+        results = open("defaultData/DigitalReference.ttl", encoding="utf8", mode='r')
         data = results.read()
         results.close()
         does_exist = db.session.query(OntologyIndexingModel.name).filter_by(
