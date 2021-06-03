@@ -1,6 +1,6 @@
 # SINCE THIS IS EXPERIMENTAL
 # we do not commit the migrations folder
-_migrations
+#_migrations
 
 
 # Covers JetBrains IDEs: PyCharm
