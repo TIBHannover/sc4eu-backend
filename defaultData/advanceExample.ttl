@@ -1,0 +1,125 @@
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix wot:   <http://xmlns.com/wot/0.1/> .
+@prefix vs:    <http://www.w3.org/2003/06/sw-vocab-status/ns#> .
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+@prefix dc:    <http://purl.org/dc/elements/1.1/> .
+@prefix ex:  <http://example.com/> .
+
+
+<http://example.com/> rdf:type owl:Ontology ;
+                             dc:description "Advanced Example Ontology. Holding multiple sub ontologies "@en ;
+                             dc:title "Advanced Example Ontology."@en ;
+                             owl:versionInfo "Version 0.1"@en .
+
+
+foaf:Person  a owl:Class;
+             rdfs:label "Person"@de.
+
+
+
+foaf:name a owl:DatatypeProperty;
+          rdfs:label "hasName";
+          rdfs:domain foaf:Person;
+          rdfs:range rdfs:Literal .
+
+foaf:lastName a owl:DatatypeProperty;
+  rdfs:label "hasLastName";
+  rdfs:domain foaf:Person;
+  rdfs:range rdfs:Literal .
+
+foaf:Person rdfs:subClassOf foaf:Agent .
+foaf:Person rdfs:subClassOf foaf:AgentSmith .
+
+foaf:creates a owl:ObjectProperty;
+  rdfs:label "creates";
+  rdfs:domain foaf:Person;
+  rdfs:range foaf:Document .
+
+ex:Document a owl:Class;
+    rdfs:label "Example Document".
+
+ex:Image rdfs:subClassOf ex:Document;
+            rdfs:label "Example Image".
+
+ex:Group a owl:Class;
+            rdfs:label "Group".
+
+
+ex:documentName a owl:DatatypeProperty;
+              rdfs:label "hasDocumentName";
+              rdfs:domain ex:Document;
+              rdfs:range rdfs:Literal .
+
+ex:documentLocation a owl:DatatypeProperty;
+                rdfs:label "hasDocumenLocation";
+                rdfs:domain ex:Document;
+                rdfs:range rdfs:Literal .
+
+
+
+ex:imageName a owl:DatatypeProperty;
+                rdfs:label "hasImageName";
+                rdfs:domain ex:Image;
+                rdfs:range rdfs:Literal .
+
+ex:imagLocation a owl:DatatypeProperty;
+                    rdfs:label "hasImageLocation";
+                    rdfs:domain ex:Image;
+                    rdfs:range rdfs:Literal .
+
+
+
+ex:groupName a owl:DatatypeProperty;
+                rdfs:label "hasGroupName";
+                rdfs:domain ex:Group;
+                rdfs:range rdfs:Literal .
+
+ex:groupMembers a owl:ObjectProperty;
+                    rdfs:label "hasGroupMember";
+                    rdfs:domain ex:Group;
+                    rdfs:range ex:Member .
+
+
+ex:hasCreatedImage a owl:ObjectProperty;
+                rdfs:label "hasCreatedImage";
+                rdfs:domain ex:Member;
+                rdfs:range ex:Image .
+
+ex:hasCreatedDocument a owl:ObjectProperty;
+                   rdfs:label "hasCreatedDocument";
+                   rdfs:domain ex:Member;
+                   rdfs:range ex:Document .
+
+ex:imageCreatedBy a owl:ObjectProperty;
+              rdfs:label "createdBy";
+              rdfs:domain ex:Image;
+              rdfs:range  ex:Member .
+
+ex:documentCreatedBy a owl:ObjectProperty;
+             rdfs:label "documentCreatedBy";
+             rdfs:domain ex:Document;
+             rdfs:range  ex:Member .
+
+
+ex:groupMembers a owl:ObjectProperty;
+                rdfs:label "hasGroupMember";
+                rdfs:domain ex:Group;
+                rdfs:range ex:Member .
+
+ex:knows a owl:ObjectProperty;
+                rdfs:label "knows";
+                rdfs:domain ex:Member;
+                rdfs:range ex:Member .
+
+
+
+
+
+
+
+
+
+ex:Member a owl:Class;
+rdfs:label "Member" .

@@ -74,3 +74,18 @@ class OntologyIndexingModel(db.Model, ModelMixin):
         else:
             cls.integrate_new_ontology(name=ontology_name, lookup_type=lookup_type, access_type=access_type,
                                        path_to_data=lookup_path, description="DIGITAL REFERENCE TEST", content=data)
+
+
+        # ######### UPLOADING DIGITAL REFERENCE
+        ontology_name = "Advanced Example"
+        results = open("defaultData/advancedExample.ttl", encoding="utf8", mode='r')
+        data = results.read()
+        results.close()
+        does_exist = db.session.query(OntologyIndexingModel.name).filter_by(
+            name=ontology_name).first() is not None
+        if does_exist:
+            print("Ontology already exists: " + ontology_name)
+        else:
+            cls.integrate_new_ontology(name=ontology_name, lookup_type=lookup_type, access_type=access_type,
+                                       path_to_data=lookup_path, description="Advanced Example Ontology", content=data)
+
