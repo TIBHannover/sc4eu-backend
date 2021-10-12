@@ -34,7 +34,7 @@ class OntologyArchiveModel(db.Model, ModelMixin):
 
             db.session.add(new_entry)
             db.session.commit()
-
+        #maybe not relevant right now , but later!
         if lookup_type == 'online' and access_type == "public":
             data = cls.integrate_new_ontology_data(path_to_data)
             # we are using the db table entry to store the ontology data.
@@ -58,3 +58,17 @@ class OntologyArchiveModel(db.Model, ModelMixin):
     @classmethod
     def get_all_ontology_from_archive(cls, ontology_id):
         return OntologyArchiveModel.query.all()
+
+    @classmethod
+    def delete_ontology_byID(cls, ontology_id):
+        #check if threre is data for id
+        print("we are in the delete_ontology_byID")
+        ontology_to_delete_exists =db.session.query(OntologyArchiveModel.uuid_entry).filter_by(
+            uuid_entry=ontology_id).first() is not None
+        print("ARCHIVE MODEL WE are here>>>", ontology_to_delete_exists, flush=True)
+
+        if ontology_to_delete_exists:
+            to_delete_entry=db.session.query(OntologyArchiveModel).filter_by(uuid_entry=ontology_id).first()
+            print(to_delete_entry, flush=True)
+            db.session.delete(to_delete_entry)
+            db.session.commit()

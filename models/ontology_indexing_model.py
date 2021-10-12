@@ -37,6 +37,27 @@ class OntologyIndexingModel(db.Model, ModelMixin):
         # saving entry
         db.session.add(new_entry)
         db.session.commit()
+    @classmethod
+    def delete_ontology_index(cls, ontology_id):
+        print("CALLED TO DELETE", flush=True )
+        # Delete from OntologyIndexingModel
+        # Delete from OntologyArchiveModel
+        # Delete from DB
+        ontology_to_delete_exists =db.session.query(OntologyIndexingModel.uuid).filter_by(
+            uuid=ontology_id).first() is not None
+        print("INDEX MODEL WE are here>>>", ontology_to_delete_exists, flush=True)
+
+        if ontology_to_delete_exists:
+            # would remove it from index
+            to_delete_entry=db.session.query(OntologyIndexingModel).filter_by(uuid=ontology_id).first()
+            print(to_delete_entry, flush=True)
+            db.session.delete(to_delete_entry)
+            db.session.commit()
+            OntologyArchiveModel.delete_ontology_byID(ontology_id)
+    #         ontology_to_delete.delete()
+    #         db.session.delete(ontology_to_delete)
+    #         db.session.commit()
+    #         ontology_to_delete.delete()
 
     @classmethod
     def get_ontology_index(cls):
