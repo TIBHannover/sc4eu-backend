@@ -2,7 +2,7 @@ from flask import jsonify, request, redirect, url_for, abort
 from flask.views import MethodView
 
 from util import use_args_with
-from ._params import OntologyIndexingGetParams, UserHeaderGetParams
+from ._params import OntologyIndexingGetParams, UserHeaderGetParams, UploadOntologyGetParams, DeleteOntologyGetParams
 from models import OntologyIndexingModel, OntologyArchiveModel, UserModel
 from functools import wraps
 import json
@@ -49,6 +49,43 @@ class AllowsUpload(MethodView):
             return jsonify({"result": True})
 
         return execute()
+class UploadOntology(MethodView):
+    @use_args_with(UploadOntologyGetParams)
+    def post(self, reqargs):
+        user_id = reqargs.get("userId")
+        token = reqargs.get("token")
+
+        #         print(user_id)
+        #         print(token)
+        #         print(request.json)
+        print("WE have some request in the backend to integrate new ontology", flush=True)
+        data_item=request.json
+        #>> 1) extract the parameters from req.json
+        #> 2) figrure a way  to call the integrate_new_ontology function
+        name = data_item['name']
+        lookup_type = data_item['lookup_type']
+        access_type = data_item['access_type']
+        lookup_path = data_item['lookup_path']
+        description = data_item['description']
+        ontology_content = data_item['ontology_content']
+
+        # 1) debug the extracted items
+        print(lookup_type)
+        print(access_type)
+        print(lookup_path)
+        print(description)
+        print(ontology_content)
+
+
+        print(data_item, flush=True)
+
+
+        OntologyIndexingModel.integrate_new_ontology(name, lookup_type, access_type, lookup_path, description,
+                                                     ontology_content)
+
+
+        #>>> excute some code here I guess
+        return jsonify({"result": True, "upload":'successful'})
 
 
 class OntologyIndexingAPI(MethodView):
@@ -90,4 +127,28 @@ class OntologyIndexingAPI(MethodView):
         ontology_content = data_item['ontology_content']
         OntologyIndexingModel.integrate_new_ontology(name, lookup_type, access_type, lookup_path, description,
                                                      ontology_content)
+        return jsonify({'success': True})
+
+class DeleteOntology(MethodView):
+    @use_args_with(DeleteOntologyGetParams)
+    #     @use_args_with(UploadOntologyGetParams)
+    def post(self, reqargs):
+        user_id=''
+
+        print(request.json)
+        user_id = reqargs.get("userId")
+        token = reqargs.get("token")
+        print(user_id, flush=True)
+        print(token, flush=True)
+        if user_id:
+            # delete ontology
+            print("DB CALL TO DELTE ONTOLOGY")
+            print('ontolgyID', reqargs.get("userID"), flush=True)
+            call = json.dumps(request.json)
+            data_item = json.loads(call)
+            ontology_id=data_item['ontologyIdToDelete']
+            print(">>>>>>>>>>>>>>>>>>>>", ontology_id, flush=True)
+            #>> TODO : check if allowed
+            OntologyIndexingModel.delete_ontology_index(ontology_id)
+
         return jsonify({'success': True})

@@ -9,3 +9,13 @@ class OntologyIndexingGetParams(Schema):
 class UserHeaderGetParams(Schema):
     userId = fields.String()
     token = fields.String()
+
+
+class UploadOntologyGetParams(Schema):
+    userId = fields.String()
+    token = fields.String()
+
+class DeleteOntologyGetParams(Schema):
+    ontology_id = fields.String()
+    userId = fields.String()
+    token = fields.String()
