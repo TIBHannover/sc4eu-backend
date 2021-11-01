@@ -84,7 +84,7 @@ class OntologyIndexingModel(db.Model, ModelMixin):
                                        path_to_data=lookup_path, description="EXAMPLE", content=data)
 
         # ######### UPLOADING DIGITAL REFERENCE
-        ontology_name = "DR-TEST"
+        ontology_name = "Digital Reference"
         results = open("defaultData/DigitalReference.ttl", encoding="utf8", mode='r')
         data = results.read()
         results.close()
