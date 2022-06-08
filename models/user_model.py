@@ -43,9 +43,9 @@ class UserModel(db.Model, ModelMixin):
                 print("there is no admin user, creating one! ")
                 new_entry = UserModel()
                 new_entry.auth_type = AUTH_LOCAL
-                new_entry.display_name = "ADMIN"
+                new_entry.display_name = "System ADMIN"
                 # // assign default role
-                _user_role = Role.query.filter(Role.name == 'Admin').first()
+                _user_role = Role.query.filter(Role.name == 'System Admin').first()
                 new_entry.roles = [_user_role]  # default user role
                 new_entry.email_address = os.environ["ADMIN_ADDRESS"]
                 new_entry.passwd_hash = sha256_crypt.encrypt(os.environ["ADMIN_SECRET"])
@@ -141,6 +141,35 @@ class UserModel(db.Model, ModelMixin):
             return False
 
     @classmethod
+    def delete_user(cls, user_uuid):
+
+        user_to_delete_exists = db.session.query(UserModel.uuid).filter_by(uuid=user_uuid).first() is not None
+
+        if user_to_delete_exists:
+            to_delete_entry = db.session.query(UserModel).filter_by(uuid=user_uuid).first()
+            user_id = to_delete_entry.id
+            print(to_delete_entry, flush=True)
+            db.session.delete(to_delete_entry)
+            db.session.commit()
+            UsersRoles.delete_user_role(user_id)
+            return "true"
+        return "false"
+
+    @classmethod
+    def update_user_role(cls, user_uuid, user_role):
+
+        user_to_delete_exists = db.session.query(UserModel.uuid).filter_by(uuid=user_uuid).first() is not None
+
+        if user_to_delete_exists:
+            to_delete_entry = db.session.query(UserModel).filter_by(uuid=user_uuid).first()
+            user_id = to_delete_entry.id
+            print(to_delete_entry, flush=True)
+            UsersRoles.update_user_role(user_id, user_role)
+            return "true"
+        return "false"
+
+
+    @classmethod
     def get_all_users_for_dashboard(cls):
         return UserModel.query.order_by(UserModel.created_at.desc()).all()
 
@@ -183,7 +212,7 @@ class UserModel(db.Model, ModelMixin):
         new_entry.display_name = params['display_name']
         new_entry.email_address = params['email']
         # // assign default role
-        _user_role = Role.query.filter(Role.name == 'User').first()
+        _user_role = Role.query.filter(Role.name == 'Public User').first()
         new_entry.roles = [_user_role]  # default user role
         # add to db
         db.session.add(new_entry)
@@ -206,7 +235,7 @@ class UserModel(db.Model, ModelMixin):
             new_entry.auth_type = params['auth_type']
             new_entry.display_name = "Unnamed user"
             # // assign default role
-            _user_role = Role.query.filter(Role.name == 'User').first()
+            _user_role = Role.query.filter(Role.name == 'Public User').first()
             new_entry.roles = [_user_role]  # default user role
 
             new_entry.email_address = params['username']
@@ -271,8 +300,7 @@ class UserModel(db.Model, ModelMixin):
             # just the view of a profile
 
             res = {"user": {"name": user.display_name,
-                            "gravatarId": gravatar_id,
-
+                            "gravatarId": gravatar_id
                             }
                    }
             # todo: request project information

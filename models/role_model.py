@@ -19,6 +19,10 @@ class Role(db.Model):
             return False
 
     @classmethod
+    def get_all_roles(cls):
+        return Role.query.order_by(Role.name).all()
+
+    @classmethod
     def create_role(cls, role_name):
         # role exists?
         if not cls.role_exists(role_name):
@@ -29,8 +33,10 @@ class Role(db.Model):
 
     @classmethod
     def initialize(cls):
-        Role.create_role("User")
+        Role.create_role("Key User")
+        Role.create_role("Public User")
         Role.create_role("Member")
-        Role.create_role("Admin")
+        Role.create_role("System Admin")
+        Role.create_role("Project Admin")
 
 
