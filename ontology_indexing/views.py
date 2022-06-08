@@ -43,7 +43,7 @@ class AllowsUpload(MethodView):
         user_id = reqargs.get("userId")
         token = reqargs.get("token")
 
-        allowed_roles = ["System Admin", "Project Admin", "Member"]
+        allowed_roles = ["Admin", "System Admin", "Project Admin", "Member"]
         @requires_role(allowed_roles, user_id, token)
         def execute():
             return jsonify({"result": True})
