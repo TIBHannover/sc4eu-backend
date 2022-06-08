@@ -8,7 +8,7 @@ from functools import wraps
 import json
 
 
-def requires_role(role_name, *outer_args, **outer_kwargs):
+def requires_role(allowed_roles, *outer_args, **outer_kwargs):
     def wrapper(view_function, *wrapper_args, **wrapper_kwargs):
         for x in wrapper_args:
             print("OuterAgs:" + x)
@@ -20,13 +20,12 @@ def requires_role(role_name, *outer_args, **outer_kwargs):
         def decorator(*args, **kwargs):
             # user_manager = current_app.user_manager
             print('trying to  get the user')
-            print("role name", role_name)
             print("user_id", outer_args[0])
 
             # check if user has role ???
             user_role = UserModel.get_user_role_for_id(outer_args[0])
             print(user_role)
-            if role_name == user_role:
+            if user_role in allowed_roles:
                 # It's OK to call the view
                 return view_function(*args, **kwargs)
             else:
@@ -44,7 +43,8 @@ class AllowsUpload(MethodView):
         user_id = reqargs.get("userId")
         token = reqargs.get("token")
 
-        @requires_role("Admin", user_id, token)
+        allowed_roles = ["System Admin", "Project Admin", "Member"]
+        @requires_role(allowed_roles, user_id, token)
         def execute():
             return jsonify({"result": True})
 

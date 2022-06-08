@@ -2,7 +2,7 @@ from flask import jsonify, request, json
 from flask.views import MethodView
 from util import use_args_with
 from ._params import UserHeaderGetParams, ViewProfileArgs
-from models import UserModel, Role
+from models import UserModel, Role, UsersRoles
 from functools import wraps
 
 
@@ -74,6 +74,18 @@ class UserAPILogin(MethodView):
         return jsonify(res)
 
 
+class UserDelete(MethodView):
+    @use_args_with(UserHeaderGetParams)
+    def get(self, reqargs):
+        print("requesting data from database ")
+        print(reqargs)
+        if reqargs.get("userId"):
+            user_id = reqargs.get("userId")
+            res = UserModel.delete_user(user_id)
+            return res
+        return jsonify({'error': "No user found"})
+
+
 class UserHeader(MethodView):
     @use_args_with(UserHeaderGetParams)
     def get(self, reqargs):
@@ -92,7 +104,7 @@ class AdminDashboard(MethodView):
         user_id = reqargs.get("userId")
         token = reqargs.get("token")
 
-        @requires_role("Admin", user_id, token)
+        @requires_role("System Admin", user_id, token)
         def execute():
             print("OKAY")
             users = UserModel.get_all_users_for_dashboard()
@@ -148,3 +160,38 @@ class ViewProfile(MethodView):
             return jsonify(UserModel.update_user_settings(user_id, token, request.json))
         else:
             return jsonify({"error": "no information updated"})
+
+
+class UpdateUserRole(MethodView):
+    @use_args_with(ViewProfileArgs)
+    def post(self, reqargs):
+        print("THIS IS THE UPDATE USER ROLE REQUEST")
+
+        if request.json:
+            user_id = request.json["userId"]
+            user_role = request.json["userRole"]
+            return jsonify(UserModel.update_user_role(user_id, user_role))
+        else:
+            return jsonify({"error": "no information updated"})
+
+
+class GetAllRoles(MethodView):
+    @use_args_with(UserHeaderGetParams)
+    def get(self, reqargs):
+        user_id = reqargs.get("userId")
+        token = reqargs.get("token")
+
+        @requires_role("System Admin", user_id, token)
+        def execute():
+            roles = Role.get_all_roles()
+            if roles:
+                all_roles = [{
+                    "role": role.name,
+                    "role_id": role.id
+                }
+                    for role in roles]
+                return jsonify(all_roles)
+            else:
+                return jsonify({'error': "Something went wrong"})
+
+        return execute()
