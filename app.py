@@ -6,11 +6,13 @@ from dotenv import load_dotenv
 from models import UserModel
 from models import Role
 from models import OntologyIndexingModel
+from models import ProjectModel
 
 load_dotenv()  # take environment variables from .env.
 
 app = create_app()
 app.secret_key = 'development'
+
 
 # Initializing the role models with default values
 
@@ -24,4 +26,5 @@ if __name__ == "__main__":
         Role.initialize()
         UserModel.initialize_admin_user()
         OntologyIndexingModel.initializeDefaultData()
+        ProjectModel.initializeDefaultProject()
     app.run(host=app.config['HOST'], port=app.config['PORT'])
