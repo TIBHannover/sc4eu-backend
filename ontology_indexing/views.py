@@ -73,6 +73,7 @@ class UploadOntology(MethodView):
         lookup_path = data_item['lookup_path']
         description = data_item['description']
         ontology_content = data_item['ontology_content']
+        project_id = data_item['project_id']
 
         # 1) debug the extracted items
         print(lookup_type)
@@ -80,11 +81,11 @@ class UploadOntology(MethodView):
         print(lookup_path)
         print(description)
         print(ontology_content)
-
+        print(project_id)
         print(data_item, flush=True)
 
         OntologyIndexingModel.integrate_new_ontology(name, lookup_type, access_type, lookup_path, description,
-                                                     ontology_content)
+                                                     ontology_content, project_id)
 
         # >>> excute some code here I guess
         return jsonify({"result": True, "upload": 'successful'})
@@ -103,7 +104,14 @@ class OntologyIndexingAPI(MethodView):
                 return jsonify({'ontologyArchive': 'ERROR, Something went wrong :/ '})
 
         else:
-            index_response = OntologyIndexingModel.get_ontology_index()
+            project_id = reqargs.get('project_id')
+            index_response = OntologyIndexingModel.get_ontology_index(project_id)
+
+            print(index_response)
+            print("Got some response")
+
+            if len(index_response) == 0:
+                return jsonify({'ontologyIndex': 'Undefined'})
 
             if index_response:
                 all_ontologies = [{"name": ontology.name,
@@ -112,7 +120,8 @@ class OntologyIndexingAPI(MethodView):
                                    "lookup_type": ontology.lookup_type,
                                    "access_type": ontology.access_type,
                                    "lookup_path": ontology.lookup_path,
-                                   "description": ontology.description} for ontology in index_response]
+                                   "description": ontology.description,
+                                   "project_id": project_id} for ontology in index_response]
                 return jsonify(all_ontologies)
             else:
                 return jsonify({'ontologyIndex': 'ERROR'})
@@ -127,8 +136,9 @@ class OntologyIndexingAPI(MethodView):
         lookup_path = data_item['lookup_path']
         description = data_item['description']
         ontology_content = data_item['ontology_content']
+        project_id = data_item['project_id']
         OntologyIndexingModel.integrate_new_ontology(name, lookup_type, access_type, lookup_path, description,
-                                                     ontology_content)
+                                                     ontology_content, project_id)
         return jsonify({'success': True})
 
 
@@ -171,6 +181,7 @@ class CreateNewProject(MethodView):
         name = project_item['name']
         description = project_item['description']
         created_by = project_item['createdBy']
+
 
         # 1) debug the extracted items
         print(name)

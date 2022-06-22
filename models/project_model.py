@@ -4,7 +4,7 @@ from ._base import ModelMixin
 
 
 class ProjectModel(db.Model, ModelMixin):
-    __tablename__ = "projects_table"
+    __tablename__ = 'projects_table'
 
     id = db.Column('hash_id', db.Integer, primary_key=True, unique=True)
     uuid = db.Column('uuid', db.String)
@@ -49,6 +49,11 @@ class ProjectModel(db.Model, ModelMixin):
     @classmethod
     def get_all_projects(cls):
         return ProjectModel.query.order_by(ProjectModel.created_at).all()
+
+    @classmethod
+    def get_project_by_name(cls, project_name):
+        return ProjectModel.query.filter_by(name=project_name).first()
+
 
     @classmethod
     def initializeDefaultProject(cls):
