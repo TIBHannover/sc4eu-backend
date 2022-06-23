@@ -3,7 +3,7 @@ from ._base import ModelMixin
 
 
 class OntologyArchiveModel(db.Model, ModelMixin):
-    __tablename__ = "ontology_archive_table"
+    __tablename__ = 'ontology_archive_table'
 
     id = db.Column('hash_id', db.Integer, primary_key=True, unique=True)
     uuid_entry = db.Column('uuid_entry', db.String)

@@ -17,7 +17,7 @@ AUTH_TOKEN = "AUTH_TOKEN"
 
 
 class UserModel(db.Model, ModelMixin):
-    __tablename__ = "sc3_user_model"
+    __tablename__ = 'sc3_user_model'
 
     id = db.Column('hash_id', db.Integer, primary_key=True, unique=True)
     uuid = db.Column('uuid', UUID(as_uuid=True), unique=True, default=uuid4)

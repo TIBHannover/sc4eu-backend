@@ -2,12 +2,12 @@
 from flask import make_response, jsonify
 from util import ListConverter, NumpyEncoder
 from flask_cors import CORS
-from ontology_indexing import ontology_indexing_blueprint
+from ontology_indexing import ontology_indexing_blueprint, project_blueprint
 from user_views import users_blueprint
 from extensions import db, migrate, app
 import os
 
-DEFAULT_BLUEPRINTS = [ontology_indexing_blueprint, users_blueprint]
+DEFAULT_BLUEPRINTS = [ontology_indexing_blueprint, users_blueprint, project_blueprint]
 
 
 def create_app(blueprints=None):
