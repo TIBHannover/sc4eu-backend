@@ -56,6 +56,16 @@ class ProjectModel(db.Model, ModelMixin):
 
 
     @classmethod
+    def get_project_by_id(cls, project_id):
+        return ProjectModel.query.filter_by(id=project_id).first()
+
+
+    @classmethod
+    def get_project_id_for_uuid(cls, uuid):
+        project = db.session.query(ProjectModel).filter_by(uuid=uuid).first()
+        return project.id
+
+    @classmethod
     def initializeDefaultProject(cls):
         # test with example data first.
         project_name = "Default"
