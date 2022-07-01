@@ -1,6 +1,6 @@
 from flask import Blueprint
 from .views import UserAPIRegister, UserAPILogin, UserHeader, AdminDashboard, ViewProfile, UserDelete, GetAllRoles, \
-    UpdateUserRole
+    UpdateUserRole, UpdateUserProjects, GetUserProjects, GetUserRole
 
 users_blueprint = Blueprint("users", __name__)
 
@@ -27,4 +27,13 @@ users_blueprint.add_url_rule('/admin/dashboard/', view_func=AdminDashboard.as_vi
                              methods=['GET', 'POST'])
 
 users_blueprint.add_url_rule('/roles/all/', view_func=GetAllRoles.as_view('roles'),
+                             methods=['GET'])
+
+users_blueprint.add_url_rule('/user/role/', view_func=GetUserRole.as_view('user_role'),
+                             methods=['GET'])
+
+users_blueprint.add_url_rule('/users/updateUserProjects/', view_func=UpdateUserProjects.as_view('update_user_projects'),
+                             methods=['POST'])
+
+users_blueprint.add_url_rule('/user/projects/', view_func=GetUserProjects.as_view('get_user_projects'),
                              methods=['GET'])

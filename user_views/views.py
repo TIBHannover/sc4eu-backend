@@ -1,8 +1,8 @@
 from flask import jsonify, request, json
 from flask.views import MethodView
 from util import use_args_with
-from ._params import UserHeaderGetParams, ViewProfileArgs
-from models import UserModel, Role, UsersRoles
+from ._params import UserHeaderGetParams, ViewProfileArgs, UserProjectsGetParams, UserRoleArgs
+from models import UserModel, Role, UsersRoles, UsersProjects
 from functools import wraps
 
 
@@ -17,13 +17,9 @@ def requires_role(role_name, *outer_args, **outer_kwargs):
         @wraps(view_function)  # Tells debuggers that is is a function wrapper
         def decorator(*args, **kwargs):
             # user_manager = current_app.user_manager
-            print('trying to  get the user')
-            print("role name", role_name)
-            print("user_id", outer_args[0])
 
             # check if user has role ???
             user_role = UserModel.get_user_role_for_id(outer_args[0])
-            print(user_role)
             if role_name == user_role:
                 # It's OK to call the view
                 return view_function(*args, **kwargs)
@@ -38,10 +34,7 @@ def requires_role(role_name, *outer_args, **outer_kwargs):
 
 class UserAPIRegister(MethodView):
     def post(self):
-        print(request.json)
-        print("Requesting registration ")
         result = UserModel.create_user(request.json)
-        print(result)
         return jsonify(result)
 
 
@@ -77,8 +70,6 @@ class UserAPILogin(MethodView):
 class UserDelete(MethodView):
     @use_args_with(UserHeaderGetParams)
     def get(self, reqargs):
-        print("requesting data from database ")
-        print(reqargs)
         if reqargs.get("userId"):
             user_id = reqargs.get("userId")
             res = UserModel.delete_user(user_id)
@@ -106,7 +97,6 @@ class AdminDashboard(MethodView):
 
         @requires_role("System Admin", user_id, token)
         def execute():
-            print("OKAY")
             users = UserModel.get_all_users_for_dashboard()
             if users:
                 all_users = [{"uuid": user.uuid,
@@ -131,8 +121,6 @@ class AdminDashboard(MethodView):
 class ViewProfile(MethodView):
     @use_args_with(ViewProfileArgs)
     def get(self, reqargs):
-        print("requesting data from database ")
-        print(reqargs)
         if reqargs.get("userId"):
             user_id = reqargs.get("userId")
             token = reqargs.get("token")
@@ -153,7 +141,6 @@ class ViewProfile(MethodView):
         print(">>>>>")
 
         if request.json:
-            print('parameterMappings')
             user_id = reqargs.get("userId")
             token = reqargs.get("token")
 
@@ -163,9 +150,8 @@ class ViewProfile(MethodView):
 
 
 class UpdateUserRole(MethodView):
-    @use_args_with(ViewProfileArgs)
+    @use_args_with(UserRoleArgs)
     def post(self, reqargs):
-        print("THIS IS THE UPDATE USER ROLE REQUEST")
 
         if request.json:
             user_id = request.json["userId"]
@@ -175,12 +161,21 @@ class UpdateUserRole(MethodView):
             return jsonify({"error": "no information updated"})
 
 
+class GetUserRole(MethodView):
+    @use_args_with(UserRoleArgs)
+    def get(self, reqargs):
+        userUUID = reqargs["userId"]
+        if userUUID:
+            return jsonify(UserModel.get_user_role_for_id(userUUID))
+        else:
+            return jsonify({"error": "No role found for the user"})
+
+
 class GetAllRoles(MethodView):
     @use_args_with(UserHeaderGetParams)
     def get(self, reqargs):
         user_id = reqargs.get("userId")
         token = reqargs.get("token")
-
         @requires_role("System Admin", user_id, token)
         def execute():
             roles = Role.get_all_roles()
@@ -195,3 +190,28 @@ class GetAllRoles(MethodView):
                 return jsonify({'error': "Something went wrong"})
 
         return execute()
+
+
+class UpdateUserProjects(MethodView):
+    @use_args_with(UserProjectsGetParams)
+    def post(self, reqargs):
+
+        if request.json:
+            userId = request.json["userId"]
+            projectsId = request.json["projectsId"]
+            if userId and projectsId:
+                return jsonify(UsersProjects.update_user_projects(userId, projectsId))
+        else:
+            return jsonify({'error': "No user Project Combination Updated"})
+
+
+class GetUserProjects(MethodView):
+    @use_args_with(UserProjectsGetParams)
+    def get(self, reqargs):
+        userUUID = reqargs["userId"]
+        user_id = UserModel.get_user_id_for_uuid(userUUID)
+
+        if user_id:
+            res = jsonify(UsersProjects.get_user_projects(user_id))
+            return res
+        return jsonify({'error': "No projects found for the user"})

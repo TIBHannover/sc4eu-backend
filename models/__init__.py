@@ -5,3 +5,4 @@ from .role_model import Role
 from .user_model import UserModel
 from .user_roles import UsersRoles
 from .project_ontology import ProjectOntology
+from .user_projects import UsersProjects

@@ -158,12 +158,11 @@ class UserModel(db.Model, ModelMixin):
     @classmethod
     def update_user_role(cls, user_uuid, user_role):
 
-        user_to_delete_exists = db.session.query(UserModel.uuid).filter_by(uuid=user_uuid).first() is not None
+        user_to_update_exists = db.session.query(UserModel.uuid).filter_by(uuid=user_uuid).first() is not None
 
-        if user_to_delete_exists:
+        if user_to_update_exists:
             to_delete_entry = db.session.query(UserModel).filter_by(uuid=user_uuid).first()
             user_id = to_delete_entry.id
-            print(to_delete_entry, flush=True)
             UsersRoles.update_user_role(user_id, user_role)
             return "true"
         return "false"
@@ -194,6 +193,10 @@ class UserModel(db.Model, ModelMixin):
         else:
             return result
 
+    @classmethod
+    def get_user_id_for_uuid(cls, uuid_user):
+        user_id = db.session.query(UserModel).filter_by(uuid=uuid_user).first()
+        return user_id.id
     @classmethod
     def create_user(cls, params):
         # generic user function

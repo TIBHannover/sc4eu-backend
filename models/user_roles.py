@@ -16,10 +16,16 @@ class UsersRoles(db.Model):
             db.session.commit()
 
     @classmethod
-    def update_user_role(cls, user_id, user_role):
+    def get_user_role(self, user_id):
+        user_role_exists = db.session.query(UsersRoles).filter_by(user_id=user_id).first() is not None
+        if user_role_exists:
+            the_entry = db.session.query(UsersRoles).filter_by(user_id=user_id).first()
+            return the_entry.role_id
 
+    @classmethod
+    def update_user_role(cls, user_id, user_role):
         user_role_to_update_exists = db.session.query(UsersRoles).filter_by(user_id=user_id).first() is not None
         if user_role_to_update_exists:
             to_update_entry = db.session.query(UsersRoles).filter_by(user_id=user_id).first()
-            to_update_entry.role_id = user_role['role_id']
+            to_update_entry.role_id = user_role
             db.session.commit()
