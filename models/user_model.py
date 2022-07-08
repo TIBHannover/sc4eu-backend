@@ -236,7 +236,7 @@ class UserModel(db.Model, ModelMixin):
 
             new_entry = UserModel()
             new_entry.auth_type = params['auth_type']
-            new_entry.display_name = "Unnamed user"
+            new_entry.display_name = params['displayName']
             # // assign default role
             _user_role = Role.query.filter(Role.name == 'Public User').first()
             new_entry.roles = [_user_role]  # default user role
