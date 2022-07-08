@@ -22,6 +22,7 @@ class UserModel(db.Model, ModelMixin):
     id = db.Column('hash_id', db.Integer, primary_key=True, unique=True)
     uuid = db.Column('uuid', UUID(as_uuid=True), unique=True, default=uuid4)
     display_name = db.Column('display_name', db.String)
+    user_name = db.Column('user_name', db.String)
     email_address = db.Column('email_address', db.String)
     passwd_hash = db.Column('passwd_hash', db.String)
     auth_type = db.Column('auth_type', db.String)
@@ -225,13 +226,13 @@ class UserModel(db.Model, ModelMixin):
     def create_user_from_email(cls, params):
         # validate email params:
         valid = False
-        if 'username' in params.keys():
+        if 'email' in params.keys():
             if 'password' in params.keys():
                 valid = True
 
         if valid:
             # check if user already exists
-            if cls.exists_in_db(params['username']):
+            if cls.exists_in_db(params['email']):
                 return {"task": "create user from email", "success": False, "error": "Email already registered"}
 
             new_entry = UserModel()
@@ -241,7 +242,7 @@ class UserModel(db.Model, ModelMixin):
             _user_role = Role.query.filter(Role.name == 'Public User').first()
             new_entry.roles = [_user_role]  # default user role
 
-            new_entry.email_address = params['username']
+            new_entry.email_address = params['email']
             passwd = params['password']
             if len(passwd) == 0:
                 return {"task": "create user from email", "success": False, "error": "Something Went wrong"}

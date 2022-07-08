@@ -46,7 +46,7 @@ class UserAPILogin(MethodView):
         # local : email passwd login
         if auth_type == "AUTH_LOCAL":
             res = UserModel.find_or_login_user(
-                {'email': request.json['username'], 'auth_type': request.json['auth_type'],
+                {'email': request.json['email'], 'auth_type': request.json['auth_type'],
                  'passwd': request.json['password']})
 
         # ----------- CURRENTLY NOT USER AT ALL --------------
