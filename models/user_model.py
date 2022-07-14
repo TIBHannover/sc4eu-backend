@@ -80,10 +80,13 @@ class UserModel(db.Model, ModelMixin):
                 res = cls.getUser(params)
                 # create a bToken
                 # we create an ssh encryption using the user id
-                res['bToken'] = sha256_crypt.encrypt(res['user_id'])
+                if(res["success"]):
+                    res['bToken'] = sha256_crypt.encrypt(res['user_id'])
                 return res
             else:
-                return {"error": "Error: No such user exists"}
+                return {
+                    "success": False,
+                    "error": "Error: No such user exists"}
 
         if params['auth_type'] == AUTH_GITHUB:
 
@@ -129,9 +132,9 @@ class UserModel(db.Model, ModelMixin):
             if correct_credentials:
                 # returning an object for the express server to create the jwt token
                 user = db.session.query(UserModel).filter_by(email_address=email).first()
-                return {"user_id": str(user.uuid)}
+                return {"success": True, "user_id": str(user.uuid)}
             else:
-                return {"error": "User already exists"}
+                return {"success": False, "error": "Incorrect Password"}
 
         if auth_type == AUTH_GITHUB:
             # we receive the jwt token?
