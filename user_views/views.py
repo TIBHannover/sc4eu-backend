@@ -199,10 +199,13 @@ class UpdateUserProjects(MethodView):
         if request.json:
             userId = request.json["userId"]
             projectsId = request.json["projectsId"]
-            if userId and projectsId:
-                return jsonify(UsersProjects.update_user_projects(userId, projectsId))
+            if userId:
+                return UsersProjects.update_user_projects(userId, projectsId)
         else:
-            return jsonify({'error': "No user Project Combination Updated"})
+            return {
+                "success": False,
+                "error": "No user Project Combination Updated"
+            }
 
 
 class GetUserProjects(MethodView):
