@@ -66,7 +66,8 @@ class UserModel(db.Model, ModelMixin):
                 email = user.email_address
                 g = Gravatar(email)
                 gravatar_id = g.email_hash
-                return {"displayName": name, "gravatarId": gravatar_id, "userId": user.uuid}
+                role = cls.get_user_role_for_id(user_id)
+                return {"displayName": name, "gravatarId": gravatar_id, "userId": user.uuid, "role": role}
             else:
                 return {"error": "Invalid Token or User"}
         else:
