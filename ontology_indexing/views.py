@@ -21,12 +21,9 @@ def requires_role(allowed_roles, *outer_args, **outer_kwargs):
         @wraps(view_function)  # Tells debuggers that is is a function wrapper
         def decorator(*args, **kwargs):
             # user_manager = current_app.user_manager
-            print('trying to  get the user')
-            print("user_id", outer_args[0])
 
             # check if user has role ???
             user_role = UserModel.get_user_role_for_id(outer_args[0])
-            print(user_role)
             if user_role in allowed_roles:
                 # It's OK to call the view
                 return view_function(*args, **kwargs)
