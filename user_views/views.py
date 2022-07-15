@@ -6,7 +6,7 @@ from models import UserModel, Role, UsersRoles, UsersProjects
 from functools import wraps
 
 
-def requires_role(role_name, *outer_args, **outer_kwargs):
+def requires_role(allowed_roles, *outer_args, **outer_kwargs):
     def wrapper(view_function, *wrapper_args, **wrapper_kwargs):
         for x in wrapper_args:
             print("OuterAgs:" + x)
@@ -20,7 +20,7 @@ def requires_role(role_name, *outer_args, **outer_kwargs):
 
             # check if user has role ???
             user_role = UserModel.get_user_role_for_id(outer_args[0])
-            if role_name == user_role:
+            if user_role in allowed_roles:
                 # It's OK to call the view
                 return view_function(*args, **kwargs)
             else:
@@ -95,7 +95,8 @@ class AdminDashboard(MethodView):
         user_id = reqargs.get("userId")
         token = reqargs.get("token")
 
-        @requires_role("System Admin", user_id, token)
+        allowed_roles = ["Admin", "System Admin", "Project Admin"]
+        @requires_role(allowed_roles, user_id, token)
         def execute():
             users = UserModel.get_all_users_for_dashboard()
             if users:
@@ -176,7 +177,8 @@ class GetAllRoles(MethodView):
     def get(self, reqargs):
         user_id = reqargs.get("userId")
         token = reqargs.get("token")
-        @requires_role("System Admin", user_id, token)
+        allowed_roles = ["Admin", "System Admin", "Project Admin"]
+        @requires_role(allowed_roles, user_id, token)
         def execute():
             roles = Role.get_all_roles()
             if roles:
