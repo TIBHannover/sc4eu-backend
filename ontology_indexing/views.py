@@ -9,7 +9,6 @@ from functools import wraps
 import json
 
 
-
 def requires_role(allowed_roles, *outer_args, **outer_kwargs):
     def wrapper(view_function, *wrapper_args, **wrapper_kwargs):
         for x in wrapper_args:
@@ -177,17 +176,18 @@ class CreateNewProject(MethodView):
         # > 2) figrure a way  to call the integrate_new_ontology function
         name = project_item['name']
         description = project_item['description']
+        access_type = project_item['accessType']
         created_by = project_item['createdBy']
-
 
         # 1) debug the extracted items
         print(name)
         print(description)
+        print(access_type)
         print(created_by)
 
         print(project_item, flush=True)
 
-        ProjectModel.create_new_project(name, description,
+        ProjectModel.create_new_project(name, description, access_type,
                                         created_by)
 
         # >>> excute some code here I guess
@@ -198,12 +198,12 @@ class CreateProjectAPI(MethodView):
     @use_args_with(CreateProjectGetParams)
     def get(self, reqargs):
         project_response = ProjectModel.get_all_projects()
-
         if project_response:
             all_projects = [{"name": project.name,
                              # This could be redundant for the users >> investigate
                              "uuid": project.uuid,
                              "description": project.description,
+                             "access_type": project.access_type,
                              "created_by": project.created_by, } for project in project_response]
             return jsonify(all_projects)
         else:
@@ -215,16 +215,18 @@ class CreateProjectAPI(MethodView):
         print(project_item, flush=True)
         name = project_item['name']
         description = project_item['description']
+        access_type = project_item['access_type']
         created_by = project_item['created_by']
 
         # 1) debug the extracted items
         print(name)
         print(description)
+        print(access_type)
         print(created_by)
 
         print(project_item, flush=True)
 
-        ProjectModel.create_new_project(name, description,
+        ProjectModel.create_new_project(name, description, access_type,
                                         created_by)
         return jsonify({'success': True})
 
