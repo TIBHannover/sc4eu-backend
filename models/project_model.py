@@ -33,6 +33,8 @@ class ProjectModel(db.Model, ModelMixin):
         db.session.add(new_entry)
         db.session.commit()
 
+        return uuid_entry
+
     @classmethod
     def delete_project(cls, project_id):
         print("CALLED TO DELETE project", flush=True )

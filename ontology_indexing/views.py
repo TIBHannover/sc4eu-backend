@@ -4,7 +4,7 @@ from flask.views import MethodView
 from util import use_args_with
 from ._params import OntologyIndexingGetParams, UserHeaderGetParams, UploadOntologyGetParams, DeleteOntologyGetParams, \
     CreateProjectGetParams, NewProjectGetParams, DeleteProjectGetParams
-from models import OntologyIndexingModel, OntologyArchiveModel, UserModel, ProjectModel
+from models import OntologyIndexingModel, OntologyArchiveModel, UserModel, ProjectModel, UsersProjects
 from functools import wraps
 import json
 
@@ -187,8 +187,17 @@ class CreateNewProject(MethodView):
 
         print(project_item, flush=True)
 
-        ProjectModel.create_new_project(name, description, access_type,
-                                        created_by)
+        project_id = ProjectModel.create_new_project(name, description, access_type,
+                                                     created_by)
+
+        user_Id = UserModel.get_user_id_for_uuid(user_id)
+        print(user_Id)
+        print(project_id)
+
+        projectsId_list = [project_id]
+        projects_uuid = [str(o) for o in projectsId_list]
+
+        UsersProjects.add_user_projects(user_Id, projects_uuid)
 
         # >>> excute some code here I guess
         return jsonify({"result": True, "creation": 'successful'})
@@ -209,7 +218,8 @@ class CreateProjectAPI(MethodView):
         else:
             return jsonify({'projects': 'ERROR'})
 
-    def post(self):
+    def post(self, reqargs):
+        user_id = reqargs.get("userId")
         call = json.dumps(request.json)
         project_item = json.loads(call)
         print(project_item, flush=True)
@@ -226,8 +236,17 @@ class CreateProjectAPI(MethodView):
 
         print(project_item, flush=True)
 
-        ProjectModel.create_new_project(name, description, access_type,
-                                        created_by)
+        project_id = ProjectModel.create_new_project(name, description, access_type,
+                                                     created_by)
+        user_Id = UserModel.get_user_id_for_uuid(user_id)
+        print(user_Id)
+        print(project_id)
+
+        projectsId_list = [project_id]
+        projects_uuid = [str(o) for o in projectsId_list]
+
+        UsersProjects.add_user_projects(user_Id, projects_uuid)
+
         return jsonify({'success': True})
 
 
