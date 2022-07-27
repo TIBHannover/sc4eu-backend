@@ -188,16 +188,11 @@ class CreateNewProject(MethodView):
         print(project_item, flush=True)
 
         project_id = ProjectModel.create_new_project(name, description, access_type,
-                                                     created_by)
+                                                       created_by)
 
         user_Id = UserModel.get_user_id_for_uuid(user_id)
-        print(user_Id)
-        print(project_id)
 
-        projectsId_list = [project_id]
-        projects_uuid = [str(o) for o in projectsId_list]
-
-        UsersProjects.add_user_projects(user_Id, projects_uuid)
+        UsersProjects.add_user_project(user_Id, project_id)
 
         # >>> excute some code here I guess
         return jsonify({"result": True, "creation": 'successful'})
@@ -238,14 +233,10 @@ class CreateProjectAPI(MethodView):
 
         project_id = ProjectModel.create_new_project(name, description, access_type,
                                                      created_by)
+
         user_Id = UserModel.get_user_id_for_uuid(user_id)
-        print(user_Id)
-        print(project_id)
 
-        projectsId_list = [project_id]
-        projects_uuid = [str(o) for o in projectsId_list]
-
-        UsersProjects.add_user_projects(user_Id, projects_uuid)
+        UsersProjects.add_user_project(user_Id, project_id)
 
         return jsonify({'success': True})
 

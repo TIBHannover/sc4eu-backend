@@ -32,8 +32,7 @@ class ProjectModel(db.Model, ModelMixin):
         # saving entry
         db.session.add(new_entry)
         db.session.commit()
-
-        return uuid_entry
+        return new_entry.id
 
     @classmethod
     def delete_project(cls, project_id):
