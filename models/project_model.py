@@ -10,26 +10,29 @@ class ProjectModel(db.Model, ModelMixin):
     uuid = db.Column('uuid', db.String)
     name = db.Column('project_name', db.String)
     description = db.Column('project_description', db.String)
+    access_type = db.Column('project_accessType', db.String)
     created_by = db.Column('created_by', db.String)
 
     # Relationships
     ontologies = db.relationship('OntologyIndexingModel', secondary='sc3_project_ontologies',
-                            backref=db.backref('projects_table', lazy='dynamic'))
+                                 backref=db.backref('projects_table', lazy='dynamic'))
 
-    def __init__(self, name, uuid, description, created_by):
+    def __init__(self, name, uuid, description, access_type, created_by):
         self.name = name
         self.uuid = uuid
         self.description = description
+        self.access_type = access_type
         self.created_by = created_by
 
     @classmethod
-    def create_new_project(cls, name, description, created_by):
+    def create_new_project(cls, name, description, access_type, created_by):
         uuid_entry = uuid4()
 
-        new_entry = ProjectModel(name=name, uuid=uuid_entry, description=description, created_by=created_by)
+        new_entry = ProjectModel(name=name, uuid=uuid_entry, description=description, access_type=access_type, created_by=created_by)
         # saving entry
         db.session.add(new_entry)
         db.session.commit()
+        return new_entry.id
 
     @classmethod
     def delete_project(cls, project_id):
@@ -76,7 +79,7 @@ class ProjectModel(db.Model, ModelMixin):
         if does_exist:
             print("Project already exists: " + project_name)
         else:
-            cls.create_new_project(name=project_name, description="Default Project", created_by="System Admin")
+            cls.create_new_project(name=project_name, description="Default Project", access_type="Public", created_by="System Admin")
 
 
 

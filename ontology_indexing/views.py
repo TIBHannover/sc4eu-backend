@@ -4,10 +4,9 @@ from flask.views import MethodView
 from util import use_args_with
 from ._params import OntologyIndexingGetParams, UserHeaderGetParams, UploadOntologyGetParams, DeleteOntologyGetParams, \
     CreateProjectGetParams, NewProjectGetParams, DeleteProjectGetParams
-from models import OntologyIndexingModel, OntologyArchiveModel, UserModel, ProjectModel
+from models import OntologyIndexingModel, OntologyArchiveModel, UserModel, ProjectModel, UsersProjects
 from functools import wraps
 import json
-
 
 
 def requires_role(allowed_roles, *outer_args, **outer_kwargs):
@@ -177,18 +176,23 @@ class CreateNewProject(MethodView):
         # > 2) figrure a way  to call the integrate_new_ontology function
         name = project_item['name']
         description = project_item['description']
+        access_type = project_item['accessType']
         created_by = project_item['createdBy']
-
 
         # 1) debug the extracted items
         print(name)
         print(description)
+        print(access_type)
         print(created_by)
 
         print(project_item, flush=True)
 
-        ProjectModel.create_new_project(name, description,
-                                        created_by)
+        project_id = ProjectModel.create_new_project(name, description, access_type,
+                                                       created_by)
+
+        user_Id = UserModel.get_user_id_for_uuid(user_id)
+
+        UsersProjects.add_user_project(user_Id, project_id)
 
         # >>> excute some code here I guess
         return jsonify({"result": True, "creation": 'successful'})
@@ -198,34 +202,42 @@ class CreateProjectAPI(MethodView):
     @use_args_with(CreateProjectGetParams)
     def get(self, reqargs):
         project_response = ProjectModel.get_all_projects()
-
         if project_response:
             all_projects = [{"name": project.name,
                              # This could be redundant for the users >> investigate
                              "uuid": project.uuid,
                              "description": project.description,
+                             "access_type": project.access_type,
                              "created_by": project.created_by, } for project in project_response]
             return jsonify(all_projects)
         else:
             return jsonify({'projects': 'ERROR'})
 
-    def post(self):
+    def post(self, reqargs):
+        user_id = reqargs.get("userId")
         call = json.dumps(request.json)
         project_item = json.loads(call)
         print(project_item, flush=True)
         name = project_item['name']
         description = project_item['description']
+        access_type = project_item['access_type']
         created_by = project_item['created_by']
 
         # 1) debug the extracted items
         print(name)
         print(description)
+        print(access_type)
         print(created_by)
 
         print(project_item, flush=True)
 
-        ProjectModel.create_new_project(name, description,
-                                        created_by)
+        project_id = ProjectModel.create_new_project(name, description, access_type,
+                                                     created_by)
+
+        user_Id = UserModel.get_user_id_for_uuid(user_id)
+
+        UsersProjects.add_user_project(user_Id, project_id)
+
         return jsonify({'success': True})
 
 
