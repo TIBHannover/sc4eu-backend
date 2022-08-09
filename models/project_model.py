@@ -10,7 +10,7 @@ class ProjectModel(db.Model, ModelMixin):
     uuid = db.Column('uuid', db.String)
     name = db.Column('project_name', db.String)
     description = db.Column('project_description', db.String)
-    access_type = db.Column('project_accessType', db.String)
+    access_type = db.Column('project_accesstype', db.String)
     created_by = db.Column('created_by', db.String)
 
     # Relationships
@@ -28,23 +28,36 @@ class ProjectModel(db.Model, ModelMixin):
     def create_new_project(cls, name, description, access_type, created_by):
         uuid_entry = uuid4()
 
-        new_entry = ProjectModel(name=name, uuid=uuid_entry, description=description, access_type=access_type, created_by=created_by)
+        new_entry = ProjectModel(name=name, uuid=uuid_entry, description=description, access_type=access_type,
+                                 created_by=created_by)
         # saving entry
         db.session.add(new_entry)
         db.session.commit()
         return new_entry.id
 
     @classmethod
+    def edit_project(cls, project_item):
+        # UPDATE projects_table SET columName=values, columName=values .. WHERE uuid=uuid
+        query = "UPDATE projects_table SET "
+        # Here Used for loop to get each columName and values which has been changed
+        for columName, values in project_item.items():
+            query += f"{columName}='{values}',"
+        # Here Used  query[:-1]  to remove last comma from the query
+        query = query[:-1] + f" WHERE uuid = '{project_item['uuid']}'"
+
+        db.engine.execute(query)
+
+    @classmethod
     def delete_project(cls, project_id):
-        print("CALLED TO DELETE project", flush=True )
+        print("CALLED TO DELETE project", flush=True)
         # Delete from DB
-        project_to_delete_exists =db.session.query(ProjectModel.uuid).filter_by(
+        project_to_delete_exists = db.session.query(ProjectModel.uuid).filter_by(
             uuid=project_id).first() is not None
         print("ProjectModel.delete_project WE are here>>>", project_to_delete_exists, flush=True)
 
         if project_to_delete_exists:
             # would remove it from index
-            to_delete_entry=db.session.query(ProjectModel).filter_by(uuid=project_id).first()
+            to_delete_entry = db.session.query(ProjectModel).filter_by(uuid=project_id).first()
             print(to_delete_entry, flush=True)
             db.session.delete(to_delete_entry)
             db.session.commit()
@@ -57,11 +70,9 @@ class ProjectModel(db.Model, ModelMixin):
     def get_project_by_name(cls, project_name):
         return ProjectModel.query.filter_by(name=project_name).first()
 
-
     @classmethod
     def get_project_by_id(cls, project_id):
         return ProjectModel.query.filter_by(id=project_id).first()
-
 
     @classmethod
     def get_project_id_for_uuid(cls, uuid):
@@ -79,7 +90,5 @@ class ProjectModel(db.Model, ModelMixin):
         if does_exist:
             print("Project already exists: " + project_name)
         else:
-            cls.create_new_project(name=project_name, description="Default Project", access_type="Public", created_by="System Admin")
-
-
-
+            cls.create_new_project(name=project_name, description="Default Project", access_type="Public",
+                                   created_by="System Admin")
