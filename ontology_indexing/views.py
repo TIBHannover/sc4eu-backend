@@ -244,15 +244,18 @@ class CreateProjectAPI(MethodView):
 class EditProject(MethodView):
     @use_args_with(EditProjectGeParams)
     def patch(self, reqargs):
-        user_id = reqargs.get("userId")
-        call = json.dumps(request.json)
-        project_item = json.loads(call)
 
-        if user_id:
-            ProjectModel.edit_project(project_item)
+        if request.json:
+            uuid = request.json["uuid"]
+            name = request.json["projectName"]
+            description = request.json["projectDescription"]
+            access_type = request.json["accessType"]
+
+            ProjectModel.edit_project(uuid, name, description, access_type)
             return jsonify({"result": True, "Edit": 'successful'})
+
         else:
-            return jsonify({"error": "no information updated"})
+            return jsonify({"result": False, "error": "no information updated"})
 
 
 class DeleteProject(MethodView):

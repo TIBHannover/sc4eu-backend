@@ -36,16 +36,17 @@ class ProjectModel(db.Model, ModelMixin):
         return new_entry.id
 
     @classmethod
-    def edit_project(cls, project_item):
-        # UPDATE projects_table SET columName=values, columName=values .. WHERE uuid=uuid
-        query = "UPDATE projects_table SET "
-        # Here Used for loop to get each columName and values which has been changed
-        for columName, values in project_item.items():
-            query += f"{columName}='{values}',"
-        # Here Used  query[:-1]  to remove last comma from the query
-        query = query[:-1] + f" WHERE uuid = '{project_item['uuid']}'"
+    def edit_project(cls, uuid, name, description, access_type):
+        project_to_update_exists = db.session.query(ProjectModel).filter_by(
+                    uuid=uuid).first() is not None
 
-        db.engine.execute(query)
+        if project_to_update_exists:
+            project_to_update = db.session.query(ProjectModel).filter_by(uuid=uuid).first()
+            project_to_update.name = name
+            project_to_update.description = description
+            project_to_update.access_type = access_type
+
+            db.session.commit()
 
     @classmethod
     def delete_project(cls, project_id):
