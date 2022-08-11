@@ -243,7 +243,7 @@ class CreateProjectAPI(MethodView):
 
 class EditProject(MethodView):
     @use_args_with(EditProjectGeParams)
-    def patch(self, reqargs):
+    def post(self, reqargs):
 
         if request.json:
             uuid = request.json["uuid"]

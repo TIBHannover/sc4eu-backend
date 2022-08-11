@@ -12,7 +12,7 @@ project_blueprint.add_url_rule('/create_new_project/', view_func=CreateNewProjec
                                methods=['POST'])
 
 project_blueprint.add_url_rule('/edit_project/', view_func=EditProject.as_view('edit_project_view'),
-                               methods=['PATCH'])
+                               methods=['POST'])
 
 project_blueprint.add_url_rule('/delete_project/', view_func=DeleteProject.as_view('delete_project_view'),
                                methods=['POST'])
