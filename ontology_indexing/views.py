@@ -3,7 +3,7 @@ from flask.views import MethodView
 
 from util import use_args_with
 from ._params import OntologyIndexingGetParams, UserHeaderGetParams, UploadOntologyGetParams, DeleteOntologyGetParams, \
-    CreateProjectGetParams, NewProjectGetParams, DeleteProjectGetParams
+    CreateProjectGetParams, NewProjectGetParams, DeleteProjectGetParams, EditProjectGeParams
 from models import OntologyIndexingModel, OntologyArchiveModel, UserModel, ProjectModel, UsersProjects
 from functools import wraps
 import json
@@ -188,7 +188,7 @@ class CreateNewProject(MethodView):
         print(project_item, flush=True)
 
         project_id = ProjectModel.create_new_project(name, description, access_type,
-                                                       created_by)
+                                                     created_by)
 
         user_Id = UserModel.get_user_id_for_uuid(user_id)
 
@@ -239,6 +239,23 @@ class CreateProjectAPI(MethodView):
         UsersProjects.add_user_project(user_Id, project_id)
 
         return jsonify({'success': True})
+
+
+class EditProject(MethodView):
+    @use_args_with(EditProjectGeParams)
+    def post(self, reqargs):
+
+        if request.json:
+            uuid = request.json["uuid"]
+            name = request.json["projectName"]
+            description = request.json["projectDescription"]
+            access_type = request.json["accessType"]
+
+            ProjectModel.edit_project(uuid, name, description, access_type)
+            return jsonify({"result": True, "Edit": 'successful'})
+
+        else:
+            return jsonify({"result": False, "error": "no information updated"})
 
 
 class DeleteProject(MethodView):

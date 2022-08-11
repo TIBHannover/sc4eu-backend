@@ -11,6 +11,11 @@ class NewProjectGetParams(Schema):
     token = fields.String()
 
 
+class EditProjectGeParams(Schema):
+    userId = fields.String()
+    token = fields.String()
+
+
 class DeleteProjectGetParams(Schema):
     project_id = fields.String()
     userId = fields.String()
