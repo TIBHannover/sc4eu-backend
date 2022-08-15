@@ -19,13 +19,11 @@ class UsersProjects(db.Model):
         user_project_to_delete_exists = db.session.query(UsersProjects).filter_by(user_id=user_id, ).first() is not None
 
         if user_project_to_delete_exists:
-            to_delete_entries = db.session.query(UsersProjects).filter_by(user_id=user_id).all()
-
-            for delete_entry in to_delete_entries:
-                db.session.delete(delete_entry)
+            try:
+                db.session.query(UsersProjects).filter_by(user_id=user_id).delete()
                 db.session.commit()
-                return True
-            return False
+            except:
+                db.session.rollback()
         return True
 
     @classmethod
