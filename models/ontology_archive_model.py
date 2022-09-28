@@ -42,7 +42,7 @@ class OntologyArchiveModel(db.Model, ModelMixin):
 
             # -- create the table entry
             new_entry = OntologyArchiveModel(name=name, lookup_type=lookup_type, access_type=access_type,
-                                             lookup_path=path_to_data, uuid_entry=uuid_entry, ontology_data=content)
+                                             lookup_path=path_to_data, uuid_entry=uuid_entry, ontology_data=data)
             db.session.add(new_entry)
             db.session.commit()
 
