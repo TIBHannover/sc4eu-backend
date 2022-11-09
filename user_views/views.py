@@ -220,3 +220,16 @@ class GetUserProjects(MethodView):
             res = jsonify(UsersProjects.get_user_projects(user_id))
             return res
         return jsonify({'error': "No projects found for the user"})
+
+
+class EditEmailValid(MethodView):
+    def post(self):
+        if request.json:
+            uuid = request.json["uuid"]
+            is_email_valid = request.json["is_email_valid"]
+
+            UserModel.edit_email_valid(uuid, is_email_valid)
+            return jsonify({"result": True, "Edit": 'successful'})
+
+        else:
+            return jsonify({"result": False, "error": "no information updated"})

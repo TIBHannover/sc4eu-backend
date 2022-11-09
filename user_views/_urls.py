@@ -1,6 +1,6 @@
 from flask import Blueprint
 from .views import UserAPIRegister, UserAPILogin, UserHeader, AdminDashboard, ViewProfile, UserDelete, GetAllRoles, \
-    UpdateUserRole, UpdateUserProjects, GetUserProjects, GetUserRole
+    UpdateUserRole, UpdateUserProjects, GetUserProjects, GetUserRole, EditEmailValid
 
 users_blueprint = Blueprint("users", __name__)
 
@@ -8,6 +8,9 @@ users_blueprint.add_url_rule('/users/register/', view_func=UserAPIRegister.as_vi
                              methods=['POST'])
 
 users_blueprint.add_url_rule('/users/login/', view_func=UserAPILogin.as_view('users_login'),
+                             methods=['POST'])
+
+users_blueprint.add_url_rule('/edit/email_valid/', view_func=EditEmailValid.as_view('edit_user_email_valid'),
                              methods=['POST'])
 
 users_blueprint.add_url_rule('/users/delete/', view_func=UserDelete.as_view('users_delete'),
