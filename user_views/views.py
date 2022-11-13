@@ -226,9 +226,8 @@ class EditEmailValid(MethodView):
     def post(self):
         if request.json:
             uuid = request.json["uuid"]
-            is_email_valid = request.json["is_email_valid"]
 
-            UserModel.edit_email_valid(uuid, is_email_valid)
+            UserModel.edit_email_valid(uuid)
             return jsonify({"result": True, "Edit": 'successful'})
 
         else:

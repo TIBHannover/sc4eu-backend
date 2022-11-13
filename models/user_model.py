@@ -212,8 +212,8 @@ class UserModel(db.Model, ModelMixin):
             email_address=email).first() is not None
 
         if is_email_exists:
-            is_email_valid = db.session.query(UserModel).filter_by(email_address=email).first()
-            if not is_email_valid.email_valid:
+            user_email_valid = db.session.query(UserModel).filter_by(email_address=email).first()
+            if not user_email_valid.email_valid:
                 return False
             else:
                 return db.session.query(UserModel.email_address).filter_by(email_address=email).first() is not None
@@ -345,13 +345,13 @@ class UserModel(db.Model, ModelMixin):
             return res
 
     @classmethod
-    def edit_email_valid(cls, uuid, is_email_valid):
+    def edit_email_valid(cls, uuid):
         user_to_update_exists = db.session.query(UserModel).filter_by(
             uuid=uuid).first() is not None
 
         if user_to_update_exists:
-            user_to_update_exists = db.session.query(UserModel).filter_by(uuid=uuid).first()
-            user_to_update_exists.email_valid = is_email_valid
+            user_email_valid = db.session.query(UserModel).filter_by(uuid=uuid).first()
+            user_email_valid.email_valid = True
 
             db.session.commit()
 
