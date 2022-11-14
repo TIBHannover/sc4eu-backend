@@ -49,6 +49,7 @@ class UserModel(db.Model, ModelMixin):
                 new_entry.roles = [_user_role]  # default user role
                 new_entry.email_address = os.environ["ADMIN_ADDRESS"]
                 new_entry.passwd_hash = sha256_crypt.encrypt(os.environ["ADMIN_SECRET"])
+                new_entry.email_valid = True
 
                 db.session.add(new_entry)
                 db.session.commit()
@@ -61,13 +62,19 @@ class UserModel(db.Model, ModelMixin):
         token_valid = sha256_crypt.verify(user_id, token)
         if token_valid:
             user = UserModel.query.filter_by(uuid=user_id).first()
+            is_email_valid = cls.is_email_valid(user.email_address)
             if user:
-                name = user.display_name
-                email = user.email_address
-                g = Gravatar(email)
-                gravatar_id = g.email_hash
-                role = cls.get_user_role_for_id(user_id)
-                return {"displayName": name, "gravatarId": gravatar_id, "userId": user.uuid, "role": role}
+                if is_email_valid:
+                    name = user.display_name
+                    email = user.email_address
+                    g = Gravatar(email)
+                    gravatar_id = g.email_hash
+                    role = cls.get_user_role_for_id(user_id)
+                    print({"displayName": name, "gravatarId": gravatar_id, "userId": user.uuid, "role": role,
+                           "is_email_valid": is_email_valid})
+                    return {"displayName": name, "gravatarId": gravatar_id, "userId": user.uuid, "role": role}
+                else:
+                    return {"error": "User is not verified"}
             else:
                 return {"error": "Invalid Token or User"}
         else:
@@ -77,13 +84,25 @@ class UserModel(db.Model, ModelMixin):
     def find_or_login_user(cls, params):
         if params['auth_type'] == AUTH_LOCAL:
             exists = cls.exists_in_db(params['email'])
+            is_email_valid = cls.is_email_valid(params['email'])
+
             if exists:
-                res = cls.getUser(params)
-                # create a bToken
-                # we create an ssh encryption using the user id
-                if(res["success"]):
-                    res['bToken'] = sha256_crypt.encrypt(res['user_id'])
-                return res
+                user = db.session.query(UserModel).filter_by(email_address=params['email']).first()
+                if is_email_valid:
+                    res = cls.getUser(params)
+                    # create a bToken
+                    # we create an ssh encryption using the user id
+                    if (res["success"]):
+                        res['bToken'] = sha256_crypt.encrypt(res['user_id'])
+                    return res
+                else:
+                    return {
+                        "is_email_valid": False,
+                        "user_id": str(user.uuid),
+                        "displayName": str(user.display_name),
+                        "success": False,
+                        "error": "Your email is not verified. Please Click on the link that has just been sent your "
+                                 "email account to verify your email than Sign In"}
             else:
                 return {
                     "success": False,
@@ -171,7 +190,6 @@ class UserModel(db.Model, ModelMixin):
             return "true"
         return "false"
 
-
     @classmethod
     def get_all_users_for_dashboard(cls):
         return UserModel.query.order_by(UserModel.created_at.desc()).all()
@@ -188,6 +206,18 @@ class UserModel(db.Model, ModelMixin):
         else:
             return db.session.query(UserModel.email_address).filter_by(email_address=email).first() is not None
 
+    @classmethod
+    def is_email_valid(cls, email):
+        is_email_exists = db.session.query(UserModel).filter_by(
+            email_address=email).first() is not None
+
+        if is_email_exists:
+            user_email_valid = db.session.query(UserModel).filter_by(email_address=email).first()
+            if not user_email_valid.email_valid:
+                return False
+            else:
+                return db.session.query(UserModel.email_address).filter_by(email_address=email).first() is not None
+
     # This method should only be allowed to be used for users with role ADMIN!
     @classmethod
     def getAllUsers(cls):
@@ -201,6 +231,7 @@ class UserModel(db.Model, ModelMixin):
     def get_user_id_for_uuid(cls, uuid_user):
         user_id = db.session.query(UserModel).filter_by(uuid=uuid_user).first()
         return user_id.id
+
     @classmethod
     def create_user(cls, params):
         # generic user function
@@ -312,3 +343,15 @@ class UserModel(db.Model, ModelMixin):
                    }
             # todo: request project information
             return res
+
+    @classmethod
+    def edit_email_valid(cls, uuid):
+        user_to_update_exists = db.session.query(UserModel).filter_by(
+            uuid=uuid).first() is not None
+
+        if user_to_update_exists:
+            user_email_valid = db.session.query(UserModel).filter_by(uuid=uuid).first()
+            user_email_valid.email_valid = True
+
+            db.session.commit()
+
