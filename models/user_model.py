@@ -62,8 +62,8 @@ class UserModel(db.Model, ModelMixin):
         token_valid = sha256_crypt.verify(user_id, token)
         if token_valid:
             user = UserModel.query.filter_by(uuid=user_id).first()
-            is_email_valid = cls.is_email_valid(user.email_address)
             if user:
+                is_email_valid = cls.is_email_valid(user.email_address)
                 if is_email_valid:
                     name = user.display_name
                     email = user.email_address
