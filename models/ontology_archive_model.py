@@ -35,7 +35,7 @@ class OntologyArchiveModel(db.Model, ModelMixin):
             db.session.add(new_entry)
             db.session.commit()
         #maybe not relevant right now , but later!
-        if lookup_type == 'online' and access_type == "public":
+        if ((lookup_type == 'online' or lookup_type == 'online-gitlab') and access_type == "public"):
             data = cls.integrate_new_ontology_data(path_to_data)
             # we are using the db table entry to store the ontology data.
             # TODO WE need to encrypt it before adding it to the data entry.
