@@ -64,6 +64,15 @@ class UserAPILogin(MethodView):
             res = UserModel.find_or_login_user({'user_id': user['user_id'],
                                                 'auth_type': request.json['auth_type']})
 
+        # Gitlab auth
+        if auth_type == "AUTH_GITLAB":
+            # we assume this is a token based authorization
+            user = UserModel.find_or_create_user(
+                {'email': request.json['email'], 'display_name': request.json['displayName'],
+                 'auth_type': request.json['auth_type'], 'email_valid': True})
+            res = UserModel.find_or_login_user({'user_id': user['user_id'],
+                                                'auth_type': request.json['auth_type']})
+
         return jsonify(res)
 
 
@@ -96,6 +105,7 @@ class AdminDashboard(MethodView):
         token = reqargs.get("token")
 
         allowed_roles = ["Admin", "System Admin", "Project Admin"]
+
         @requires_role(allowed_roles, user_id, token)
         def execute():
             users = UserModel.get_all_users_for_dashboard()
@@ -178,6 +188,7 @@ class GetAllRoles(MethodView):
         user_id = reqargs.get("userId")
         token = reqargs.get("token")
         allowed_roles = ["Admin", "System Admin", "Project Admin"]
+
         @requires_role(allowed_roles, user_id, token)
         def execute():
             roles = Role.get_all_roles()

@@ -14,6 +14,7 @@ import os
 AUTH_GITHUB = "AUTH_GITHUB"
 AUTH_LOCAL = "AUTH_LOCAL"
 AUTH_TOKEN = "AUTH_TOKEN"
+AUTH_GITLAB = "AUTH_GITLAB"
 
 
 class UserModel(db.Model, ModelMixin):
@@ -109,7 +110,11 @@ class UserModel(db.Model, ModelMixin):
                     "error": "Error: No such user exists"}
 
         if params['auth_type'] == AUTH_GITHUB:
+            res = {'user_id': params['user_id']}
+            res['bToken'] = sha256_crypt.encrypt(res['user_id'])
+            return res
 
+        if params['auth_type'] == AUTH_GITLAB:
             res = {'user_id': params['user_id']}
             res['bToken'] = sha256_crypt.encrypt(res['user_id'])
             return res
@@ -129,6 +134,12 @@ class UserModel(db.Model, ModelMixin):
             if not exists:
                 cls.create_user(params)
 
+            return cls.getUser(params)
+
+        if params['auth_type'] == AUTH_GITLAB:
+            exists = cls.exists_in_db(params['email'])
+            if not exists:
+                cls.create_user(params)
             return cls.getUser(params)
 
         if params['auth_type'] == AUTH_LOCAL:
@@ -160,6 +171,11 @@ class UserModel(db.Model, ModelMixin):
             # we receive the jwt token?
             user = db.session.query(UserModel).filter_by(email_address=email).first()
             return {"user_id": str(user.uuid)}
+
+        if auth_type == AUTH_GITLAB:
+            user = db.session.query(UserModel).filter_by(email_address=email).first()
+            return {"user_id": str(user.uuid)}
+
         else:
             return False
 
@@ -242,9 +258,25 @@ class UserModel(db.Model, ModelMixin):
             return res
         if auth_type == AUTH_GITHUB:
             return cls.create_user_github(params)
+        if auth_type == AUTH_GITLAB:
+            return cls.create_user_gitlab(params)
 
     @classmethod
     def create_user_github(cls, params):
+        new_entry = UserModel()
+        new_entry.auth_type = params['auth_type']
+        new_entry.display_name = params['display_name']
+        new_entry.email_address = params['email']
+        new_entry.email_valid = params['email_valid']
+        # // assign default role
+        _user_role = Role.query.filter(Role.name == 'Public User').first()
+        new_entry.roles = [_user_role]  # default user role
+        # add to db
+        db.session.add(new_entry)
+        db.session.commit()
+
+    @classmethod
+    def create_user_gitlab(cls, params):
         new_entry = UserModel()
         new_entry.auth_type = params['auth_type']
         new_entry.display_name = params['display_name']
