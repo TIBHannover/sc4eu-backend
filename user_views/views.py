@@ -60,7 +60,7 @@ class UserAPILogin(MethodView):
             # we assume this is a token based authorization
             user = UserModel.find_or_create_user(
                 {'email': request.json['email'], 'display_name': request.json['displayName'],
-                 'auth_type': request.json['auth_type']})
+                 'auth_type': request.json['auth_type'], 'email_valid': True})
             res = UserModel.find_or_login_user({'user_id': user['user_id'],
                                                 'auth_type': request.json['auth_type']})
 
