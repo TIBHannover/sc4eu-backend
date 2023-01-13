@@ -388,3 +388,26 @@ class UserModel(db.Model, ModelMixin):
 
             db.session.commit()
 
+    @classmethod
+    def update_password(cls, uuid, password):
+        user_to_update_exists = db.session.query(UserModel).filter_by(
+            uuid=uuid).first() is not None
+
+        if user_to_update_exists:
+            user_password = db.session.query(UserModel).filter_by(uuid=uuid).first()
+            user_password.passwd_hash = sha256_crypt.encrypt(password)
+
+            db.session.commit()
+            return {"success": True, "message": "Password changed successfully "}
+
+        return {"success": False, "message": "something went wrong please try again after some time"}
+
+    @classmethod
+    def is_email_exists(cls, email):
+        email_exists = db.session.query(UserModel).filter_by(
+            email_address=email).first() is not None
+        if email_exists:
+            user = db.session.query(UserModel).filter_by(email_address=email).first()
+            return {"success": True, "message": "Email is exist", "user_id":  str(user.uuid), "display_name":  str(user.display_name)}
+
+        return {"success": False, "message": "Email is not exist"}

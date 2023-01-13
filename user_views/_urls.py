@@ -1,6 +1,6 @@
 from flask import Blueprint
 from .views import UserAPIRegister, UserAPILogin, UserHeader, AdminDashboard, ViewProfile, UserDelete, GetAllRoles, \
-    UpdateUserRole, UpdateUserProjects, GetUserProjects, GetUserRole, EditEmailValid
+    UpdateUserRole, UpdateUserProjects, GetUserProjects, GetUserRole, EditEmailValid, EmailExists, SetNewPassword
 
 users_blueprint = Blueprint("users", __name__)
 
@@ -15,6 +15,13 @@ users_blueprint.add_url_rule('/users/edit_email_valid/', view_func=EditEmailVali
 
 users_blueprint.add_url_rule('/users/delete/', view_func=UserDelete.as_view('users_delete'),
                              methods=['GET'])
+
+users_blueprint.add_url_rule('/users/email_exists/', view_func=EmailExists.as_view('email_exists'),
+                             methods=['POST'])
+
+users_blueprint.add_url_rule('/users/set_new_password/', view_func=SetNewPassword.as_view('set_new_password'),
+                             methods=['POST'])
+
 # TODO: change above methods to DELETE or POST
 
 users_blueprint.add_url_rule('/users/header/', view_func=UserHeader.as_view('users_header'),
