@@ -410,4 +410,4 @@ class UserModel(db.Model, ModelMixin):
             user = db.session.query(UserModel).filter_by(email_address=email).first()
             return {"success": True, "message": "Email is exist", "user_id":  str(user.uuid), "display_name":  str(user.display_name)}
 
-        return {"success": False, "message": "Email is not exist"}
+        return {"success": False, "message": "Email does not exist"}
