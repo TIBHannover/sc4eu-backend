@@ -243,3 +243,25 @@ class EditEmailValid(MethodView):
 
         else:
             return jsonify({"result": False, "error": "no information updated"})
+
+
+class EmailExists(MethodView):
+    def post(self):
+        if request.json:
+            email = request.json["email_address"]
+            res = UserModel.is_email_exists(email)
+            return res
+
+        return jsonify({"successful": False, "message": "something went wrong please try again after some time"})
+
+
+class SetNewPassword(MethodView):
+    def post(self):
+        if request.json:
+            user_id = request.json["user_id"]
+            password = request.json["password"]
+
+            res = UserModel.update_password(user_id, password)
+            return res
+
+        return jsonify({"success": False, "message": "something went wrong please try again after some time"})
