@@ -265,3 +265,22 @@ class SetNewPassword(MethodView):
             return res
 
         return jsonify({"success": False, "message": "something went wrong please try again after some time"})
+
+class GetAllUsers(MethodView):
+    def get(self):
+        def execute():
+            users = UserModel.get_all_users_for_dashboard()
+            if users:
+                all_users = [{"uuid": user.uuid,
+                              "auth_type": user.auth_type,
+                              "display_name": user.display_name,
+                              "email_valid": user.email_valid,
+                              "email_address": user.email_address,
+                              "role": user.roles[0].name
+                              }
+                             for user in users]
+                return jsonify(all_users)
+            else:
+                return jsonify({'error': "Something went wrong"})
+
+        return execute()
