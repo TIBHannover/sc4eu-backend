@@ -20,5 +20,5 @@ class UserRoleArgs(Schema):
 
 class UserProjectsGetParams(Schema):
     userId = fields.String()
-    projectsId = fields.List(fields.String())
+    projectId = fields.List(fields.String())
     token = fields.String()

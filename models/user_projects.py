@@ -109,7 +109,26 @@ class UsersProjects(db.Model):
         user_all_projects = db.session.query(UsersProjects).filter_by(user_id=user_id).all()
         if user_all_projects:
             for user_project in user_all_projects:
-                print(user_project.project_id)
                 project_uuid = ProjectModel.get_project_by_id(user_project.project_id).uuid
                 projects.append(project_uuid)
         return projects
+
+    @classmethod
+    def get_user_projects_detail(cls, user_id):
+        projectsDetail = []
+        user_all_projects = db.session.query(UsersProjects).filter_by(user_id=user_id).all()
+        if user_all_projects:
+            for user_project in user_all_projects:
+                project = ProjectModel.get_project_detail_by_id(user_project.project_id)
+                projectsDetail.append(project)
+        return projectsDetail
+
+    @classmethod
+    def get_project_users(cls, project_id):
+        users = []
+        projects_all_users = db.session.query(UsersProjects).filter_by(project_id=project_id).all()
+        if projects_all_users:
+            for project_user in projects_all_users:
+                user = UserModel.get_user_detail_by_id(project_user.user_id)
+                users.append(user)
+        return users

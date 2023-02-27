@@ -2,7 +2,7 @@ from flask import jsonify, request, json
 from flask.views import MethodView
 from util import use_args_with
 from ._params import UserHeaderGetParams, ViewProfileArgs, UserProjectsGetParams, UserRoleArgs
-from models import UserModel, Role, UsersRoles, UsersProjects
+from models import UserModel, Role, UsersRoles, UsersProjects, ProjectModel
 from functools import wraps
 
 
@@ -231,6 +231,31 @@ class GetUserProjects(MethodView):
             res = jsonify(UsersProjects.get_user_projects(user_id))
             return res
         return jsonify({'error': "No projects found for the user"})
+
+
+class GetUserProjectsDetail(MethodView):
+    @use_args_with(UserProjectsGetParams)
+    def get(self, reqargs):
+        userUUID = reqargs["userId"]
+        user_id = UserModel.get_user_id_for_uuid(userUUID)
+
+        if user_id:
+            res = jsonify(UsersProjects.get_user_projects_detail(user_id))
+            return res
+        return jsonify({'error': "No projects found for the user"})
+
+
+class GetProjectUsersDetail(MethodView):
+    @use_args_with(UserProjectsGetParams)
+    def get(self, reqargs):
+        projectUUID = reqargs["projectId"]
+        project_id = ProjectModel.get_project_id_for_uuid(projectUUID[0])
+
+        if project_id:
+            res = jsonify(UsersProjects.get_project_users(project_id))
+            return res
+        return jsonify({'error': "No projects found for the user"})
+
 
 
 class EditEmailValid(MethodView):
