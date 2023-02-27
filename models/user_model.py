@@ -73,7 +73,8 @@ class UserModel(db.Model, ModelMixin):
                     role = cls.get_user_role_for_id(user_id)
                     print({"displayName": name, "gravatarId": gravatar_id, "userId": user.uuid, "role": role,
                            "is_email_valid": is_email_valid})
-                    return {"displayName": name, "userEmail": email, "gravatarId": gravatar_id, "userId": user.uuid, "role": role}
+                    return {"displayName": name, "userEmail": email, "gravatarId": gravatar_id, "userId": user.uuid,
+                            "role": role}
                 else:
                     return {"error": "User is not verified"}
             else:
@@ -408,6 +409,17 @@ class UserModel(db.Model, ModelMixin):
             email_address=email).first() is not None
         if email_exists:
             user = db.session.query(UserModel).filter_by(email_address=email).first()
-            return {"success": True, "message": "Email is exist", "user_id":  str(user.uuid), "display_name":  str(user.display_name)}
+            return {"success": True, "message": "Email is exist", "user_id": str(user.uuid),
+                    "display_name": str(user.display_name)}
 
         return {"success": False, "message": "Email does not exist"}
+
+    @classmethod
+    def get_user_detail_by_id(cls, user_id):
+        user = UserModel.query.filter_by(id=user_id).first()
+        if user:
+            userDetailObject = {"uuid": user.uuid, "display_name": user.display_name,
+                                "email_address": user.email_address, "auth_type": user.auth_type,
+                                "email_valid": user.email_valid, "active": user.active}
+            return userDetailObject
+        return None

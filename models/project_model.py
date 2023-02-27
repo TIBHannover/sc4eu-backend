@@ -76,9 +76,20 @@ class ProjectModel(db.Model, ModelMixin):
         return ProjectModel.query.filter_by(id=project_id).first()
 
     @classmethod
+    def get_project_detail_by_id(cls, project_id):
+        project = ProjectModel.query.filter_by(id=project_id).first()
+        if project:
+            projectDetailObject = {"uuid": project.uuid, "name": project.name, "description": project.description,
+                                   "accessType": project.access_type, "createdBy": project.created_by}
+            return projectDetailObject
+        return None
+
+    @classmethod
     def get_project_id_for_uuid(cls, uuid):
         project = db.session.query(ProjectModel).filter_by(uuid=uuid).first()
-        return project.id
+        if project is not None:
+            return project.id
+        return None
 
     @classmethod
     def initializeDefaultProject(cls):
