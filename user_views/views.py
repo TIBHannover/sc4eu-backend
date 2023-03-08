@@ -1,7 +1,7 @@
 from flask import jsonify, request, json
 from flask.views import MethodView
 from util import use_args_with
-from ._params import UserHeaderGetParams, ViewProfileArgs, UserProjectsGetParams, UserRoleArgs
+from ._params import UserHeaderGetParams, ViewProfileArgs, UserProjectsGetParams, UserRoleArgs, UserEmailArgs
 from models import UserModel, Role, UsersRoles, UsersProjects, ProjectModel
 from functools import wraps
 
@@ -257,7 +257,6 @@ class GetProjectUsersDetail(MethodView):
         return jsonify({'error': "No projects found for the user"})
 
 
-
 class EditEmailValid(MethodView):
     def post(self):
         if request.json:
@@ -291,6 +290,7 @@ class SetNewPassword(MethodView):
 
         return jsonify({"success": False, "message": "something went wrong please try again after some time"})
 
+
 class GetAllUsers(MethodView):
     def get(self):
         def execute():
@@ -309,3 +309,33 @@ class GetAllUsers(MethodView):
                 return jsonify({'error': "Something went wrong"})
 
         return execute()
+
+
+class DeleteUserFromProject(MethodView):
+    def get(self):
+        if request.json:
+            projectUUID = request.json['projectUUID']
+            userUUID = request.json['userUUID']
+            userRemoved = UsersProjects.delete_user_from_project(projectUUID, userUUID)
+            return userRemoved
+        return jsonify({'result': 'Failed'})
+
+
+class CheckIfUserExists(MethodView):
+    @use_args_with(UserEmailArgs)
+    def get(self, reqargs):
+        emailId = reqargs["emailId"]
+        if emailId:
+            doesEmailExist = UserModel.is_email_exists(emailId)
+            return doesEmailExist
+        return jsonify({'result': 'Failed'})
+
+
+class AddUserToProject(MethodView):
+    def get(self):
+        if request.json:
+            projectUUID = request.json['projectUUID']
+            userUUID = request.json['userUUID']
+            userAdded = UsersProjects.add_user_to_project(projectUUID, userUUID)
+            return userAdded
+        return jsonify({'result': 'Failed'})

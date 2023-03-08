@@ -12,6 +12,11 @@ class ViewProfileArgs(Schema):
     token = fields.String()
 
 
+class UserEmailArgs(Schema):
+    emailId = fields.String()
+    token = fields.String()
+
+
 class UserRoleArgs(Schema):
     userId = fields.String()
     userRole = fields.Integer()
