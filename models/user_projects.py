@@ -1,4 +1,5 @@
 from extensions import db
+from flask import jsonify
 from sqlalchemy.exc import SQLAlchemyError
 
 from .project_model import ProjectModel
@@ -16,7 +17,7 @@ class UsersProjects(db.Model):
         # Get ids for user_uuid and project_uuid
         # user_id = UserModel.get_user_id_for_uuid(user_uuid).id
         # project_id = ProjectModel.get_project_id_for_uuid(project_uuid).id
-        user_project_to_delete_exists = db.session.query(UsersProjects).filter_by(user_id=user_id, ).first() is not None
+        user_project_to_delete_exists = db.session.query(UsersProjects).filter_by(user_id=user_id).first() is not None
 
         if user_project_to_delete_exists:
             to_delete_entries = db.session.query(UsersProjects).filter_by(user_id=user_id).all()
@@ -27,6 +28,19 @@ class UsersProjects(db.Model):
                 return True
             return False
         return True
+
+    @classmethod
+    def delete_project_user(cls, project_id, user_id):
+
+        project_user_to_delete_exists = db.session.query(UsersProjects).filter_by(project_id=project_id,
+                                                                                  user_id=user_id).first() is not None
+
+        if project_user_to_delete_exists:
+            to_delete_entry = db.session.query(UsersProjects).filter_by(project_id=project_id, user_id=user_id).first()
+            db.session.delete(to_delete_entry)
+            db.session.commit()
+            return True
+        return False
 
     @classmethod
     def delete_user_projects(cls, user_id):
@@ -132,3 +146,21 @@ class UsersProjects(db.Model):
                 user = UserModel.get_user_detail_by_id(project_user.user_id)
                 users.append(user)
         return users
+
+    @classmethod
+    def delete_user_from_project(cls, project_uuid, user_uuid):
+        userId = UserModel.get_user_id_for_uuid(user_uuid)
+        projectId = ProjectModel.get_project_id_for_uuid(project_uuid)
+        res = cls.delete_project_user(projectId, userId)
+        return jsonify({'result': res})
+
+    @classmethod
+    def add_user_to_project(cls, project_uuid, user_uuid):
+        userId = UserModel.get_user_id_for_uuid(user_uuid)
+        projectId = ProjectModel.get_project_id_for_uuid(project_uuid)
+
+        project_user_not_exists = db.session.query(UsersProjects).filter_by(project_id=projectId,
+                                                                            user_id=userId).first() is None
+        if project_user_not_exists:
+            res = cls.add_user_project(userId, projectId)
+            return jsonify({'result': res})

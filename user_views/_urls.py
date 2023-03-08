@@ -1,7 +1,8 @@
 from flask import Blueprint
 from .views import UserAPIRegister, UserAPILogin, UserHeader, AdminDashboard, ViewProfile, UserDelete, GetAllRoles, \
     UpdateUserRole, UpdateUserProjects, GetUserProjects, GetUserRole, EditEmailValid, EmailExists, SetNewPassword, \
-    GetAllUsers, GetUserProjectsDetail, GetProjectUsersDetail
+    GetAllUsers, GetUserProjectsDetail, GetProjectUsersDetail, DeleteUserFromProject, CheckIfUserExists, \
+    AddUserToProject
 
 users_blueprint = Blueprint("users", __name__)
 
@@ -58,4 +59,13 @@ users_blueprint.add_url_rule('/project/usersDetail/', view_func=GetProjectUsersD
 
 
 users_blueprint.add_url_rule('/users/all/', view_func=GetAllUsers.as_view('users_all'),
-                             methods=['GET', 'POST'])
+                             methods=['GET', 'POST']),
+
+users_blueprint.add_url_rule('/project/unregisterUser/', view_func=DeleteUserFromProject.as_view('delete_user_from_project'),
+                             methods=['GET'])
+
+users_blueprint.add_url_rule('/project/addUser/', view_func=AddUserToProject.as_view('add_user_to_project'),
+                             methods=['GET'])
+
+users_blueprint.add_url_rule('/user/doesUserExist/', view_func=CheckIfUserExists.as_view('is_email_exist'),
+                             methods=['GET'])
