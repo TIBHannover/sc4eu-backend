@@ -3,7 +3,7 @@ from flask.views import MethodView
 
 from util import use_args_with
 from ._params import OntologyIndexingGetParams, UserHeaderGetParams, UploadOntologyGetParams, DeleteOntologyGetParams, \
-    CreateProjectGetParams, NewProjectGetParams, DeleteProjectGetParams, EditProjectGeParams
+    CreateProjectGetParams, NewProjectGetParams, DeleteProjectGetParams, EditProjectGeParams, GetOntologyGitDataGetParams
 from models import OntologyIndexingModel, OntologyArchiveModel, UserModel, ProjectModel, UsersProjects
 from functools import wraps
 import json
@@ -59,7 +59,6 @@ class UploadOntology(MethodView):
         #         print(user_id)
         #         print(token)
         #         print(request.json)
-        print("WE have some request in the backend to integrate new ontology", flush=True)
         data_item = request.json
         # >> 1) extract the parameters from req.json
         # > 2) figrure a way  to call the integrate_new_ontology function
@@ -70,18 +69,10 @@ class UploadOntology(MethodView):
         description = data_item['description']
         ontology_content = data_item['ontology_content']
         project_id = data_item['project_id']
-
-        # 1) debug the extracted items
-        print(lookup_type)
-        print(access_type)
-        print(lookup_path)
-        print(description)
-        print(ontology_content)
-        print(project_id)
-        print(data_item, flush=True)
+        ontology_git_data = data_item['ontology_git_data']
 
         OntologyIndexingModel.integrate_new_ontology(name, lookup_type, access_type, lookup_path, description,
-                                                     ontology_content, project_id)
+                                                     ontology_content, project_id, ontology_git_data)
 
         # >>> excute some code here I guess
         return jsonify({"result": True, "upload": 'successful'})
@@ -103,9 +94,6 @@ class OntologyIndexingAPI(MethodView):
             project_id = reqargs.get('project_id')
             index_response = OntologyIndexingModel.get_ontology_index(project_id)
 
-            print(index_response)
-            print("Got some response")
-
             if len(index_response) == 0:
                 return jsonify({'ontologyIndex': 'Undefined'})
 
@@ -125,7 +113,6 @@ class OntologyIndexingAPI(MethodView):
     def post(self):
         call = json.dumps(request.json)
         data_item = json.loads(call)
-        print(data_item, flush=True)
         name = data_item['name']
         lookup_type = data_item['lookup_type']
         access_type = data_item['access_type']
@@ -133,30 +120,38 @@ class OntologyIndexingAPI(MethodView):
         description = data_item['description']
         ontology_content = data_item['ontology_content']
         project_id = data_item['project_id']
+        ontology_git_data = data_item['ontology_git_data']
         OntologyIndexingModel.integrate_new_ontology(name, lookup_type, access_type, lookup_path, description,
-                                                     ontology_content, project_id)
+                                                     ontology_content, project_id, ontology_git_data)
         return jsonify({'success': True})
+
+
+class GetOntologyGitData(MethodView):
+    @use_args_with(GetOntologyGitDataGetParams)
+    def get(self, reqargs):
+        ontology_id = reqargs.get("ontology_id")
+
+        if ontology_id:
+            res = jsonify(OntologyArchiveModel.get_ontology_git_Data(ontology_id))
+            return res
+        else:
+            return {
+                "success": False,
+                "error": "No git data found"
+            }
 
 
 class DeleteOntology(MethodView):
     @use_args_with(DeleteOntologyGetParams)
     #     @use_args_with(UploadOntologyGetParams)
     def post(self, reqargs):
-        print("Inside DeleteOntology backend")
-
-        print(request.json)
         user_id = reqargs.get("userId")
         token = reqargs.get("token")
-        print(user_id, flush=True)
-        print(token, flush=True)
         if user_id:
             # delete ontology
-            print("DB CALL TO DELTE ONTOLOGY")
-            print('ontolgyID', reqargs.get("userID"), flush=True)
             call = json.dumps(request.json)
             data_item = json.loads(call)
             ontology_id = data_item['ontologyIdToDelete']
-            print(">>>>>>>>>>>>>>>>>>>>", ontology_id, flush=True)
             # >> TODO : check if allowed
             OntologyIndexingModel.delete_ontology_index(ontology_id)
 
@@ -169,23 +164,13 @@ class CreateNewProject(MethodView):
         user_id = reqargs.get("userId")
         token = reqargs.get("token")
 
-        print("WE have some request in the backend to create new project", flush=True)
         project_item = request.json
-        print(project_item)
         # >> 1) extract the parameters from req.json
         # > 2) figrure a way  to call the integrate_new_ontology function
         name = project_item['name']
         description = project_item['description']
         access_type = project_item['accessType']
         created_by = project_item['createdBy']
-
-        # 1) debug the extracted items
-        print(name)
-        print(description)
-        print(access_type)
-        print(created_by)
-
-        print(project_item, flush=True)
 
         project_id = ProjectModel.create_new_project(name, description, access_type,
                                                      created_by)
@@ -217,19 +202,10 @@ class CreateProjectAPI(MethodView):
         user_id = reqargs.get("userId")
         call = json.dumps(request.json)
         project_item = json.loads(call)
-        print(project_item, flush=True)
         name = project_item['name']
         description = project_item['description']
         access_type = project_item['access_type']
         created_by = project_item['created_by']
-
-        # 1) debug the extracted items
-        print(name)
-        print(description)
-        print(access_type)
-        print(created_by)
-
-        print(project_item, flush=True)
 
         project_id = ProjectModel.create_new_project(name, description, access_type,
                                                      created_by)
@@ -261,20 +237,13 @@ class EditProject(MethodView):
 class DeleteProject(MethodView):
     @use_args_with(DeleteProjectGetParams)
     def post(self, reqargs):
-        print("Inside DeleteProject backend")
-        print(request.json)
         project_id = reqargs.get("userId")
         token = reqargs.get("token")
-        print('who is deleting?', project_id, flush=True)
-        print(token, flush=True)
         if project_id:
             # delete project
-            print("DB CALL TO DELETE PROJECT")
-            print('projectID', reqargs.get("projectIdToDelete"), flush=True)
             call = json.dumps(request.json)
             project_item = json.loads(call)
             project_id = project_item['projectIdToDelete']
-            print(">>>>>>>>>>>>>>>>>>>>", project_id, flush=True)
             # >> TODO : check if allowed
             ProjectModel.delete_project(project_id)
             return jsonify({'success': True})
