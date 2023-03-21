@@ -6,6 +6,7 @@ from ontology_indexing import ontology_indexing_blueprint, project_blueprint
 from user_views import users_blueprint
 from extensions import db, migrate, app
 import os
+from distutils.util import strtobool
 
 DEFAULT_BLUEPRINTS = [ontology_indexing_blueprint, users_blueprint, project_blueprint]
 
@@ -37,12 +38,11 @@ def setup_sqlalchemy_uri(app_object):
     containerized = os.environ["CONTAINERIZED"]
     container_name = os.environ["CONTAINER_NAME"]
 
-    testing_env = os.environ["TESTING_FLAG"]
+    testing_env = bool(strtobool(os.getenv('TESTING_FLAG')))
     if testing_env:
         app_object.config[
             "SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://sc3_postgres_user:sc3_postgres_password@localhost:5432/sc3_database"
     else:
-
         if not uri:
             domain = 'localhost'
             if containerized == "True":
