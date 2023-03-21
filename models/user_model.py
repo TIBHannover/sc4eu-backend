@@ -192,8 +192,8 @@ class UserModel(db.Model, ModelMixin):
             db.session.delete(to_delete_entry)
             db.session.commit()
             UsersRoles.delete_user_role(user_id)
-            return "true"
-        return "false"
+            return {"success": "true"}
+        return {"success": "false"}
 
     @classmethod
     def update_user_role(cls, user_uuid, user_role):

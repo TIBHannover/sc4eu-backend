@@ -136,10 +136,8 @@ class ViewProfile(MethodView):
             user_id = reqargs.get("userId")
             token = reqargs.get("token")
 
-            if token:
-                res = UserModel.get_profile_info(user_id, token)
-            else:
-                res = {'error': "Token is not provided"}
+            res = UserModel.get_profile_info(user_id, token)
+
             return jsonify(res)
 
         return jsonify({'error': "No user found"})
