@@ -425,6 +425,7 @@ class UserModel(db.Model, ModelMixin):
             return userDetailObject
         return None
 
+    # Todo: refactor get_All_System_Admin methode instead of for loop try to use query
     @classmethod
     def get_All_System_Admin(cls):
         users = UserModel.query.order_by(UserModel.created_at.desc()).all()
