@@ -421,7 +421,7 @@ class UserModel(db.Model, ModelMixin):
         if user:
             userDetailObject = {"uuid": user.uuid, "display_name": user.display_name,
                                 "email_address": user.email_address, "auth_type": user.auth_type,
-                                "email_valid": user.email_valid, "active": user.active}
+                                "email_valid": user.email_valid, "active": user.active, "role": user.roles[0].name}
             return userDetailObject
         return None
 
