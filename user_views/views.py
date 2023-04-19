@@ -103,7 +103,7 @@ class AdminDashboard(MethodView):
     def get(self, reqargs):
         user_id = reqargs.get("userId")
         token = reqargs.get("token")
-
+        print('is user id exist ?')
         allowed_roles = ["Admin", "System Admin", "Project Admin"]
 
         @requires_role(allowed_roles, user_id, token)
