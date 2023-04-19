@@ -1,5 +1,6 @@
 from extensions import db
 from uuid import uuid4
+from flask import jsonify
 from passlib.hash import sha256_crypt
 from libgravatar import Gravatar
 from ._base import ModelMixin
@@ -192,8 +193,8 @@ class UserModel(db.Model, ModelMixin):
             db.session.delete(to_delete_entry)
             db.session.commit()
             UsersRoles.delete_user_role(user_id)
-            return "true"
-        return "false"
+            return {"success": "true"}
+        return {"success": "false"}
 
     @classmethod
     def update_user_role(cls, user_uuid, user_role):
@@ -420,6 +421,26 @@ class UserModel(db.Model, ModelMixin):
         if user:
             userDetailObject = {"uuid": user.uuid, "display_name": user.display_name,
                                 "email_address": user.email_address, "auth_type": user.auth_type,
-                                "email_valid": user.email_valid, "active": user.active}
+                                "email_valid": user.email_valid, "active": user.active, "role": user.roles[0].name}
             return userDetailObject
         return None
+
+    # Todo: refactor get_All_System_Admin methode instead of for loop try to use query
+    @classmethod
+    def get_All_System_Admin(cls):
+        users = UserModel.query.order_by(UserModel.created_at.desc()).all()
+        if users:
+            allSystem_Admin = []
+            for user in users:
+                if user.roles[0].name == "System Admin":
+                    system_admin = {"uuid": user.uuid,
+                                    "auth_type": user.auth_type,
+                                    "display_name": user.display_name,
+                                    "email_valid": user.email_valid,
+                                    "email_address": user.email_address,
+                                    "role": user.roles[0].name
+                                    }
+                    allSystem_Admin.append(system_admin)
+            return jsonify(allSystem_Admin)
+        else:
+            return jsonify({'error': "No system admin found"})

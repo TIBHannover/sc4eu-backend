@@ -136,21 +136,14 @@ class ViewProfile(MethodView):
             user_id = reqargs.get("userId")
             token = reqargs.get("token")
 
-            if token:
-                res = UserModel.get_profile_info(user_id, token)
-            else:
-                res = UserModel.get_profile_info(user_id, token)
+            res = UserModel.get_profile_info(user_id, token)
+
             return jsonify(res)
 
         return jsonify({'error': "No user found"})
 
     @use_args_with(ViewProfileArgs)
     def post(self, reqargs):
-        print("THIS IS THE PUT REQUEST")
-        print(reqargs)
-        print(request.json)
-        print(">>>>>")
-
         if request.json:
             user_id = reqargs.get("userId")
             token = reqargs.get("token")
@@ -339,3 +332,8 @@ class AddUserToProject(MethodView):
             userAdded = UsersProjects.add_user_to_project(projectUUID, userUUID)
             return userAdded
         return jsonify({'result': 'Failed'})
+
+
+class GetAllSystemAdmin(MethodView):
+    def get(self):
+        return UserModel.get_All_System_Admin()
