@@ -26,8 +26,10 @@ class ProjectModel(db.Model, ModelMixin):
 
     @classmethod
     def create_new_project(cls, name, description, access_type, created_by):
-        uuid_entry = uuid4()
 
+        if cls.is_project_name_exists(name):
+            return None
+        uuid_entry = uuid4()
         new_entry = ProjectModel(name=name, uuid=uuid_entry, description=description, access_type=access_type,
                                  created_by=created_by)
         # saving entry
@@ -104,3 +106,11 @@ class ProjectModel(db.Model, ModelMixin):
         else:
             cls.create_new_project(name=project_name, description="Default Project", access_type="Public",
                                    created_by="System Admin")
+
+    @classmethod
+    def is_project_name_exists(cls, project_name):
+        does_project_name_exists = db.session.query(ProjectModel.name).filter_by(
+            name=project_name).first() is not None
+
+        if does_project_name_exists:
+            return True
