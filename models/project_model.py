@@ -1,5 +1,8 @@
 from extensions import db
 from uuid import uuid4
+
+from sqlalchemy import func
+
 from ._base import ModelMixin
 
 
@@ -109,8 +112,8 @@ class ProjectModel(db.Model, ModelMixin):
 
     @classmethod
     def is_project_name_exists(cls, project_name):
-        does_project_name_exists = db.session.query(ProjectModel.name).filter_by(
-            name=project_name).first() is not None
+        does_project_name_exist = db.session.query(ProjectModel).filter(func.lower(ProjectModel.name) == project_name.lower()).first() is not None
 
-        if does_project_name_exists:
+        if does_project_name_exist:
             return True
+
