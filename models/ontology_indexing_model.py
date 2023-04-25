@@ -34,7 +34,7 @@ class OntologyIndexingModel(db.Model, ModelMixin):
     def integrate_new_ontology(cls, name, lookup_type, access_type, path_to_data, description, content, project_id,
                                ontology_git_data):
 
-        if cls.is_ontology_already_uploaded(name, content, project_id):
+        if cls.is_ontology_already_uploaded(name, project_id):
             return None
         uuid_entry = uuid4()
 
@@ -134,11 +134,7 @@ class OntologyIndexingModel(db.Model, ModelMixin):
                                        project_id=project_id, ontology_git_data=ontology_git_data)
 
     @classmethod
-    def is_ontology_already_uploaded(cls, name, content, project_id):
-        # Check if ontology content is already uploaded
-        does_ontology_content_uploaded = db.session.query(OntologyArchiveModel).filter_by(
-            ontology_data=content).all()
-
+    def is_ontology_already_uploaded(cls, name, project_id):
         # Check if ontology with same name is already uploaded for the project
         project_id_ontologies = db.session.query(OntologyIndexingModel).filter_by(project_id=project_id).all()
 
@@ -146,7 +142,3 @@ class OntologyIndexingModel(db.Model, ModelMixin):
             if ontology.name.lower() == name.lower():
                 # If an ontology with the same name is already uploaded for the project
                 return True
-            for ontology_content in does_ontology_content_uploaded:
-                # If ontology content is already uploaded with the same name as the current ontology of the project
-                if ontology_content.ontology_data == content and ontology_content.name == ontology.name:
-                    return True
