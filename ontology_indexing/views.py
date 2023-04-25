@@ -3,7 +3,8 @@ from flask.views import MethodView
 
 from util import use_args_with
 from ._params import OntologyIndexingGetParams, UserHeaderGetParams, UploadOntologyGetParams, DeleteOntologyGetParams, \
-    CreateProjectGetParams, NewProjectGetParams, DeleteProjectGetParams, EditProjectGeParams, GetOntologyGitDataGetParams
+    CreateProjectGetParams, NewProjectGetParams, DeleteProjectGetParams, EditProjectGeParams, \
+    GetOntologyGitDataGetParams
 from models import OntologyIndexingModel, OntologyArchiveModel, UserModel, ProjectModel, UsersProjects
 from functools import wraps
 import json
@@ -71,10 +72,12 @@ class UploadOntology(MethodView):
         project_id = data_item['project_id']
         ontology_git_data = data_item['ontology_git_data']
 
-        OntologyIndexingModel.integrate_new_ontology(name, lookup_type, access_type, lookup_path, description,
-                                                     ontology_content, project_id, ontology_git_data)
+        res = OntologyIndexingModel.integrate_new_ontology(name, lookup_type, access_type, lookup_path, description,
+                                                            ontology_content, project_id, ontology_git_data)
 
-        # >>> excute some code here I guess
+        if not res:
+            return jsonify({"result": False, "message": "Ontology is already exists, Please Upload any other ontology"})
+
         return jsonify({"result": True, "upload": 'successful'})
 
 
@@ -121,8 +124,12 @@ class OntologyIndexingAPI(MethodView):
         ontology_content = data_item['ontology_content']
         project_id = data_item['project_id']
         ontology_git_data = data_item['ontology_git_data']
-        OntologyIndexingModel.integrate_new_ontology(name, lookup_type, access_type, lookup_path, description,
+        res = OntologyIndexingModel.integrate_new_ontology(name, lookup_type, access_type, lookup_path, description,
                                                      ontology_content, project_id, ontology_git_data)
+
+        if not res:
+            return jsonify({"result": False, "message": "Ontology is already exists, Please Upload any other ontology"})
+
         return jsonify({'success': True})
 
 
