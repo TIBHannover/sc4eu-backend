@@ -1,6 +1,9 @@
 from extensions import db
 from uuid import uuid4
 
+from flask import jsonify
+from sqlalchemy import func
+
 from ._base import ModelMixin
 from .ontology_archive_model import OntologyArchiveModel
 from .project_model import ProjectModel
@@ -28,7 +31,11 @@ class OntologyIndexingModel(db.Model, ModelMixin):
         self.project_id = project_id
 
     @classmethod
-    def integrate_new_ontology(cls, name, lookup_type, access_type, path_to_data, description, content, project_id, ontology_git_data):
+    def integrate_new_ontology(cls, name, lookup_type, access_type, path_to_data, description, content, project_id,
+                               ontology_git_data):
+
+        if cls.is_ontology_already_uploaded(name, project_id):
+            return None
         uuid_entry = uuid4()
 
         new_entry = OntologyIndexingModel(name=name, lookup_type=lookup_type, access_type=access_type,
@@ -42,6 +49,8 @@ class OntologyIndexingModel(db.Model, ModelMixin):
         # saving entry
         db.session.add(new_entry)
         db.session.commit()
+
+        return True
 
     @classmethod
     def delete_ontology_index(cls, ontology_id):
@@ -123,3 +132,13 @@ class OntologyIndexingModel(db.Model, ModelMixin):
             cls.integrate_new_ontology(name=ontology_name, lookup_type=lookup_type, access_type=access_type,
                                        path_to_data=lookup_path, description="Advanced Example Ontology", content=data,
                                        project_id=project_id, ontology_git_data=ontology_git_data)
+
+    @classmethod
+    def is_ontology_already_uploaded(cls, name, project_id):
+        # Check if ontology with same name is already uploaded for the project
+        project_id_ontologies = db.session.query(OntologyIndexingModel).filter_by(project_id=project_id).all()
+
+        for ontology in project_id_ontologies:
+            if ontology.name.lower() == name.lower():
+                # If an ontology with the same name is already uploaded for the project
+                return True
