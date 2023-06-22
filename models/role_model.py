@@ -33,7 +33,6 @@ class Role(db.Model):
 
     @classmethod
     def initialize(cls):
-        Role.create_role("Key User")
         Role.create_role("Public User")
         Role.create_role("Member")
         Role.create_role("System Admin")
