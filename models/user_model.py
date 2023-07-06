@@ -156,12 +156,12 @@ class UserModel(db.Model, ModelMixin):
     def getUser(cls, params):
         email = params.get('email')
         auth_type = params.get('auth_type')
-
         if auth_type == AUTH_LOCAL:
             passwd = params.get('passwd')
             pass_hash = db.session.query(UserModel.passwd_hash).filter_by(email_address=email).first()
+            if pass_hash[0] is None:  # Access the first element of the tuple
+                return {"success": False, "error": "Incorrect Password"}
             correct_credentials = sha256_crypt.verify(passwd, pass_hash[0])
-
             if correct_credentials:
                 # returning an object for the express server to create the jwt token
                 user = db.session.query(UserModel).filter_by(email_address=email).first()
