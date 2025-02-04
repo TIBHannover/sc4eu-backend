@@ -16,3 +16,4 @@ python-dotenv
 passlib
 flask_user
 libgravatar
+requests

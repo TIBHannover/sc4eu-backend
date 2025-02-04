@@ -16,6 +16,8 @@ AUTH_GITHUB = "AUTH_GITHUB"
 AUTH_LOCAL = "AUTH_LOCAL"
 AUTH_TOKEN = "AUTH_TOKEN"
 AUTH_GITLAB = "AUTH_GITLAB"
+AUTH_GOOGLE = "AUTH_GOOGLE"
+AUTH_SAP = "AUTH_SAP"
 
 
 class UserModel(db.Model, ModelMixin):
@@ -120,6 +122,17 @@ class UserModel(db.Model, ModelMixin):
             res = {'user_id': params['user_id']}
             res['bToken'] = sha256_crypt.encrypt(res['user_id'])
             return res
+        
+        if params['auth_type'] == AUTH_GOOGLE:
+            res = {'user_id': params['user_id']}
+            res['bToken'] = sha256_crypt.encrypt(res['user_id'])
+            return res
+        
+        if params['auth_type'] == AUTH_SAP:
+            res = {'user_id': params['user_id']}
+            res['bToken'] = sha256_crypt.encrypt(res['user_id'])
+            return res
+        
         else:  # TOKEN BASED THINGY???
             return cls.getUserFromToken(params)
 
@@ -139,6 +152,18 @@ class UserModel(db.Model, ModelMixin):
             return cls.getUser(params)
 
         if params['auth_type'] == AUTH_GITLAB:
+            exists = cls.exists_in_db(params['email'])
+            if not exists:
+                cls.create_user(params)
+            return cls.getUser(params)
+        
+        if params['auth_type'] == AUTH_GOOGLE:
+            exists = cls.exists_in_db(params['email'])
+            if not exists:
+                cls.create_user(params)
+            return cls.getUser(params)
+        
+        if params['auth_type'] == AUTH_SAP:
             exists = cls.exists_in_db(params['email'])
             if not exists:
                 cls.create_user(params)
@@ -175,6 +200,14 @@ class UserModel(db.Model, ModelMixin):
             return {"user_id": str(user.uuid)}
 
         if auth_type == AUTH_GITLAB:
+            user = db.session.query(UserModel).filter_by(email_address=email).first()
+            return {"user_id": str(user.uuid)}
+        
+        if auth_type == AUTH_GOOGLE:
+            user = db.session.query(UserModel).filter_by(email_address=email).first()
+            return {"user_id": str(user.uuid)}
+        
+        if auth_type == AUTH_SAP:
             user = db.session.query(UserModel).filter_by(email_address=email).first()
             return {"user_id": str(user.uuid)}
 
@@ -262,6 +295,10 @@ class UserModel(db.Model, ModelMixin):
             return cls.create_user_github(params)
         if auth_type == AUTH_GITLAB:
             return cls.create_user_gitlab(params)
+        if auth_type == AUTH_GOOGLE:
+            return cls.create_user_google(params)
+        if auth_type == AUTH_SAP:
+            return cls.create_user_sap(params)
 
     @classmethod
     def create_user_github(cls, params):
@@ -279,6 +316,34 @@ class UserModel(db.Model, ModelMixin):
 
     @classmethod
     def create_user_gitlab(cls, params):
+        new_entry = UserModel()
+        new_entry.auth_type = params['auth_type']
+        new_entry.display_name = params['display_name']
+        new_entry.email_address = params['email']
+        new_entry.email_valid = params['email_valid']
+        # // assign default role
+        _user_role = Role.query.filter(Role.name == 'Public User').first()
+        new_entry.roles = [_user_role]  # default user role
+        # add to db
+        db.session.add(new_entry)
+        db.session.commit()
+
+    @classmethod
+    def create_user_google(cls, params):
+        new_entry = UserModel()
+        new_entry.auth_type = params['auth_type']
+        new_entry.display_name = params['display_name']
+        new_entry.email_address = params['email']
+        new_entry.email_valid = params['email_valid']
+        # // assign default role
+        _user_role = Role.query.filter(Role.name == 'Public User').first()
+        new_entry.roles = [_user_role]  # default user role
+        # add to db
+        db.session.add(new_entry)
+        db.session.commit()
+
+    @classmethod
+    def create_user_sap(cls, params):
         new_entry = UserModel()
         new_entry.auth_type = params['auth_type']
         new_entry.display_name = params['display_name']
