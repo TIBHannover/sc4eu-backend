@@ -4,6 +4,7 @@ from util import use_args_with
 from ._params import UserHeaderGetParams, ViewProfileArgs, UserProjectsGetParams, UserRoleArgs, UserEmailArgs
 from models import UserModel, Role, UsersRoles, UsersProjects, ProjectModel
 from functools import wraps
+import requests
 
 
 def requires_role(allowed_roles, *outer_args, **outer_kwargs):
@@ -41,7 +42,8 @@ class UserAPIRegister(MethodView):
 class UserAPILogin(MethodView):
 
     def post(self):
-        auth_type = request.json['auth_type']
+
+        auth_type = request.json.get('auth_type')
         res = ''
         # local : email passwd login
         if auth_type == "AUTH_LOCAL":
@@ -72,8 +74,86 @@ class UserAPILogin(MethodView):
                  'auth_type': request.json['auth_type'], 'email_valid': True})
             res = UserModel.find_or_login_user({'user_id': user['user_id'],
                                                 'auth_type': request.json['auth_type']})
-
+            
+        # Google auth
+        if auth_type == "AUTH_GOOGLE":
+            # we assume this is a token based authorization
+            user = UserModel.find_or_create_user(
+                {'email': request.json['email'], 'display_name': request.json['displayName'],
+                 'auth_type': request.json['auth_type'], 'email_valid': True})
+            res = UserModel.find_or_login_user({'user_id': user['user_id'],
+                                                'auth_type': request.json['auth_type']})
+                        
+        # SAP auth
+        if auth_type == "AUTH_SAP":
+            # we assume this is a token based authorization
+            user = UserModel.find_or_create_user(
+                {'email': request.json['email'], 'display_name': request.json['displayName'],
+                 'auth_type': request.json['auth_type'], 'email_valid': True})
+            res = UserModel.find_or_login_user({'user_id': user['user_id'],
+                                                'auth_type': request.json['auth_type']})            
+    
         return jsonify(res)
+    
+    
+    # def _get_oauth_user_info(self, token, provider):
+    #     """
+    #     Helper method to fetch user info from an OAuth provider using the access token.
+    #     """
+    #     # Define provider-specific endpoints (add more providers as needed)
+    #     provider_endpoints = {
+    #         'sap': 'https://aqcbt5t42.accounts.ondemand.com/oauth2/userinfo',
+    #         'google': 'https://www.googleapis.com/oauth2/v3/userinfo',
+    #         'microsoft': 'https://graph.microsoft.com/v1.0/me',
+    #         # Add more providers here
+    #     }
+
+    #     print(f"Fetching {provider} user info with token: {token[:10]}...")
+
+    #     if not token or token == 'undefined':
+    #         print("Invalid token received", flush=True)
+    #         print(token, flush=True)
+    #         return None
+        
+    #     # Format token properly
+    #     auth_token = token if token.startswith('Bearer ') else f'Bearer {token}'
+
+    #     headers = {
+    #         'Authorization': auth_token,
+    #         'Accept': 'application/json',
+    #         'Content-Type': 'application/json'
+    #     }
+
+    #     try:
+    #         print(f"Calling {provider} endpoint with headers: {headers}", flush=True)
+    #         # Call the provider's user info endpoint
+    #         response = requests.get(provider_endpoints[provider], headers=headers, verify=True)
+
+    #         print(f"Response Status: {response.status_code}", flush=True)
+    #         print(f"Response Headers: {response.headers}", flush=True)
+    #         print(f"Response Body: {response.text}", flush=True)
+
+    #         if response.status_code == 401:
+    #             print("Authentication failed - invalid token", flush=True)
+    #             return None
+
+    #         response.raise_for_status()
+    #         user_info = response.json()
+
+    #         if provider == 'sap':
+    #         # Map SAP-specific response fields
+    #             return {
+    #                 'email': user_info.get('email'),
+    #                 'display_name': user_info.get('name', user_info.get('email')),
+    #                 'sub': user_info.get('sub'),  # SAP unique identifier
+    #             }
+
+    #         return user_info  # Return user info (e.g., email, display name)
+    #     except requests.exceptions.RequestException as e:
+    #         print(f"Error fetching user info from {provider}: {str(e)}")
+    #         print(f"Response status: {getattr(e.response, 'status_code', 'N/A')}")
+    #         print(f"Response body: {getattr(e.response, 'text', 'N/A')}")
+    #         return None
 
 
 class UserDelete(MethodView):
