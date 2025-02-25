@@ -1,4 +1,4 @@
-from flask import jsonify, request, redirect, url_for, abort
+from flask import jsonify, request, redirect, url_for, abort, current_app
 from flask.views import MethodView
 
 from util import use_args_with
@@ -84,34 +84,51 @@ class UploadOntology(MethodView):
 class OntologyIndexingAPI(MethodView):
     @use_args_with(OntologyIndexingGetParams)
     def get(self, reqargs):
-        if reqargs.get("ontology_id"):
-            archive_response = OntologyArchiveModel.get_ontology_from_archive(reqargs.get("ontology_id"))
-            if archive_response:
+        try:
+            # Handle ontology retrieval by ID
+            ontology_id = reqargs.get("ontology_id")
+            if ontology_id:
+                archive_response = OntologyArchiveModel.get_ontology_from_archive(ontology_id)
+                if not archive_response:
+                    return jsonify({'ontologyArchive': 'ERROR, Something went wrong :/ '})
+                
                 ontology = {"name": archive_response.name,
                             "ontology_data": archive_response.ontology_data, "uuid": archive_response.uuid_entry}
-                return jsonify(ontology)
-            else:
-                return jsonify({'ontologyArchive': 'ERROR, Something went wrong :/ '})
+                return jsonify(ontology)                
+            
+            # Handle project ontologies retrieval
+            project_id = reqargs.get('project_id')            
+            if project_id:
+                index_response = OntologyIndexingModel.get_ontology_index(project_id)
 
-        else:
-            project_id = reqargs.get('project_id')
-            index_response = OntologyIndexingModel.get_ontology_index(project_id)
+                # Handle empty result
+                if not index_response:
+                    return jsonify({'ontologyIndex': 'Undefined'})
 
-            if len(index_response) == 0:
-                return jsonify({'ontologyIndex': 'Undefined'})
+                # Transform ontologies data
+                ontologies = [{
+                    'name': ontology.name,
+                    'uuid': ontology.uuid,
+                    'lookup_type': ontology.lookup_type,
+                    'access_type': ontology.access_type,
+                    'lookup_path': ontology.lookup_path,
+                    'description': ontology.description,
+                    'project_id': project_id
+                } for ontology in index_response]
 
-            if index_response:
-                all_ontologies = [{"name": ontology.name,
-                                   # This could be redundant for the users >> investigate
-                                   "uuid": ontology.uuid,
-                                   "lookup_type": ontology.lookup_type,
-                                   "access_type": ontology.access_type,
-                                   "lookup_path": ontology.lookup_path,
-                                   "description": ontology.description,
-                                   "project_id": project_id} for ontology in index_response]
-                return jsonify(all_ontologies)
-            else:
-                return jsonify({'ontologyIndex': 'ERROR'})
+                return jsonify(ontologies)                
+                
+            return jsonify({'ontologyIndex': 'ERROR'})
+            
+        except Exception as e:
+            # Log the error for debugging
+            current_app.logger.error(f'Error in OntologyIndexingAPI.get: {str(e)}', exc_info=True)
+            
+            return jsonify({
+                'success': False,
+                'error': 'Internal server error',
+                'message': str(e)
+            }), 500
 
     def post(self):
         call = json.dumps(request.json)
