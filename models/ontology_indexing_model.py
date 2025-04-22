@@ -51,6 +51,40 @@ class OntologyIndexingModel(db.Model, ModelMixin):
         db.session.commit()
 
         return True
+    
+    
+    @classmethod
+    def update_existing_ontology(cls, name, lookup_type, access_type, path_to_data, description, content, project_id, ontology_id,
+                               ontology_git_data):
+
+        ontology = cls.get_ontology_if_exists(name, project_id)
+        if ontology is not None:
+            # If an ontology with the same name is already uploaded for the project
+            if ontology.uuid == ontology_id:
+                # If the UUIDs are the same, it means it's the same ontology
+                #                 
+
+                # Update the existing ontology entry
+                ontology.name = name
+                ontology.lookup_type = lookup_type
+                ontology.access_type = access_type
+                ontology.lookup_path = path_to_data
+                ontology.description = description
+                ontology.project_id = project_id
+                ontology.uuid = ontology_id
+                # Update the ontology archive entry
+                updated_ontology = OntologyArchiveModel.update_existing_ontology_data(ontology_id, content, ontology_git_data)
+                if updated_ontology is None:
+                    # If the ontology with the given ID does not exist, return None
+                    return None
+                return ontology
+            else:       
+                # If the UUIDs are different, it means it's a different ontology
+                # You can choose to either update the existing one or create a new one
+                # For now, let's just return False
+                return False
+        else:
+            return None
 
     @classmethod
     def delete_ontology_index(cls, ontology_id):
@@ -142,3 +176,27 @@ class OntologyIndexingModel(db.Model, ModelMixin):
             if ontology.name.lower() == name.lower():
                 # If an ontology with the same name is already uploaded for the project
                 return True
+            
+    @classmethod
+    def get_ontology_if_exists(cls, name, project_id):
+        # Check if ontology with same name is already uploaded for the project
+        project_id_ontologies = db.session.query(OntologyIndexingModel).filter_by(project_id=project_id).all()
+
+        for ontology in project_id_ontologies:
+            if ontology.name.lower() == name.lower():
+                # If an ontology with the same name is already uploaded for the project
+                return ontology
+            
+        return None
+    
+    @classmethod
+    def get_ontology_by_id(cls, ontology_id):
+        # Check if ontology with same name is already uploaded for the project
+        ontology = db.session.query(OntologyIndexingModel).filter_by(uuid=ontology_id).first()
+        return ontology
+    
+    @classmethod
+    def get_ontology_by_name(cls, name):
+        # Check if ontology with same name is already uploaded for the project
+        ontology = db.session.query(OntologyIndexingModel).filter_by(name=name).first()
+        return ontology    

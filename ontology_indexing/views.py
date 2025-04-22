@@ -2,7 +2,7 @@ from flask import jsonify, request, redirect, url_for, abort, current_app
 from flask.views import MethodView
 
 from util import use_args_with
-from ._params import OntologyIndexingGetParams, UserHeaderGetParams, UploadOntologyGetParams, DeleteOntologyGetParams, \
+from ._params import OntologyIndexingGetParams, UserHeaderGetParams, UploadOntologyGetParams, UpdateOntologyGetParams, DeleteOntologyGetParams, \
     CreateProjectGetParams, NewProjectGetParams, DeleteProjectGetParams, EditProjectGeParams, \
     GetOntologyGitDataGetParams
 from models import OntologyIndexingModel, OntologyArchiveModel, UserModel, ProjectModel, UsersProjects
@@ -79,6 +79,44 @@ class UploadOntology(MethodView):
             return jsonify({"result": False, "message": "Ontology is already exists, Please Upload any other ontology"})
 
         return jsonify({"result": True, "upload": 'successful'})
+    
+
+class UpdateOntology(MethodView):
+    @use_args_with(UpdateOntologyGetParams)
+    def post(self, reqargs):
+        user_id = reqargs.get("userId")
+        token = reqargs.get("token")
+
+        data_item = request.json                    
+        
+        name = data_item['name']
+        lookup_type = data_item['lookup_type']
+        access_type = data_item['access_type']
+        lookup_path = data_item['lookup_path']
+        description = data_item['description']
+        ontology_content = data_item['ontology_content']
+        project_id = data_item['project_id']
+        ontology_id = data_item['ontology_id']
+        ontology_git_data = data_item['ontology_git_data']
+
+        res = OntologyIndexingModel.update_existing_ontology(name, lookup_type, access_type, lookup_path, description,
+                                                            ontology_content, project_id, ontology_id, ontology_git_data)
+
+        if not res:
+            return jsonify({"success": False, "message": "Ontology is already exists, Please Upload any other ontology"})
+
+        # Convert model object to dictionary
+        res_dict = {
+            "name": res.name,
+            "uuid": res.uuid,
+            "lookup_type": res.lookup_type,
+            "access_type": res.access_type,
+            "lookup_path": res.lookup_path,
+            "description": res.description,
+            "project_id": res.project_id
+        }
+
+        return jsonify({"success": True, "message": "Successfully updated ontology", "data": res_dict})    
 
 
 class OntologyIndexingAPI(MethodView):

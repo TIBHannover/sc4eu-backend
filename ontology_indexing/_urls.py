@@ -1,5 +1,5 @@
 from flask import Blueprint
-from .views import OntologyIndexingAPI, AllowsUpload, UploadOntology, DeleteOntology, GetOntologyGitData
+from .views import OntologyIndexingAPI, AllowsUpload, UploadOntology, UpdateOntology, DeleteOntology, GetOntologyGitData
 from .views import CreateProjectAPI, CreateNewProject, DeleteProject, EditProject
 
 ontology_indexing_blueprint = Blueprint("ontology_indexing", __name__)
@@ -25,6 +25,9 @@ ontology_indexing_blueprint.add_url_rule('/allows_upload/', view_func=AllowsUplo
                                          methods=['GET'])
 
 ontology_indexing_blueprint.add_url_rule('/upload_ontology/', view_func=UploadOntology.as_view('upload_ontology_view'),
+                                         methods=['POST'])
+
+ontology_indexing_blueprint.add_url_rule('/update_ontology/', view_func=UpdateOntology.as_view('update_ontology_view'),
                                          methods=['POST'])
 
 ontology_indexing_blueprint.add_url_rule('/get_ontology_gitdata/', view_func=GetOntologyGitData.as_view('get_ontology_git_data'),

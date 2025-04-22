@@ -51,6 +51,57 @@ class OntologyArchiveModel(db.Model, ModelMixin):
             db.session.add(new_entry)
             db.session.commit()
 
+    # @classmethod
+    # def update_existing_ontology_data(cls, ontology_id, content, ontology_git_data):
+    #     # Fetch the ontology entry by ID
+    #     ontology_to_update = db.session.query(OntologyArchiveModel).filter_by(uuid_entry=ontology_id).first()
+
+    #     if ontology_to_update:
+    #         # Update only the provided fields
+    #         if content is not None:
+    #             ontology_to_update.ontology_data = content
+    #         if ontology_git_data is not None:
+    #             ontology_to_update.ontology_git_data = ontology_git_data
+
+    #         # Commit the changes
+    #         db.session.commit()
+    #         return ontology_to_update
+    #     else:
+    #         # If the ontology with the given ID does not exist, return None
+    #         return None
+    
+    @classmethod
+    def update_existing_ontology_data(cls, ontology_id, content=None, ontology_git_data=None):
+        """
+        Updates the ontology entry with the given ID. Only non-None fields will be updated.
+
+        Args:
+            ontology_id: The unique identifier for the ontology.
+            content: New content to update.
+            ontology_git_data: New Git data to update.
+
+        Returns:
+            The updated ontology object, or None if not found.
+        """
+        ontology_entry = db.session.query(OntologyArchiveModel).filter_by(uuid_entry=ontology_id).first()
+
+        if not ontology_entry:
+            return None
+
+        if content is not None:
+            ontology_entry.ontology_data = content
+        if ontology_git_data is not None:
+            ontology_entry.ontology_git_data = ontology_git_data
+
+        if content is not None or ontology_git_data is not None:
+            try:
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                raise
+
+        return ontology_entry
+    
     @classmethod
     def integrate_new_ontology_data(cls, url):
         return "This is our data Blog, Hello Ontology"
