@@ -36,6 +36,10 @@ class UploadOntologyGetParams(Schema):
     userId = fields.String()
     token = fields.String()
 
+class UpdateOntologyGetParams(Schema):
+    userId = fields.String()
+    token = fields.String()
+
 
 class GetOntologyGitDataGetParams(Schema):
     ontology_id = fields.String()
