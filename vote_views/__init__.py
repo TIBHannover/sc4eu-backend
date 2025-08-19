@@ -1,0 +1,1 @@
+from ._urls import term_blueprint
