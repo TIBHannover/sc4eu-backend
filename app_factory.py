@@ -4,11 +4,12 @@ from util import ListConverter, NumpyEncoder
 from flask_cors import CORS
 from ontology_indexing import ontology_indexing_blueprint, project_blueprint
 from user_views import users_blueprint
+from vote_views import term_blueprint
 from extensions import db, migrate, app
 import os
 from distutils.util import strtobool
 
-DEFAULT_BLUEPRINTS = [ontology_indexing_blueprint, users_blueprint, project_blueprint]
+DEFAULT_BLUEPRINTS = [ontology_indexing_blueprint, users_blueprint, project_blueprint, term_blueprint]
 
 
 def create_app(blueprints=None):

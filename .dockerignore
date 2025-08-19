@@ -4,6 +4,7 @@
 !models/
 !ontology_indexing
 !user_views
+!vote_views
 !.env
 !*.py
 !requirements.txt

@@ -6,6 +6,7 @@ from libgravatar import Gravatar
 from ._base import ModelMixin
 from .role_model import Role
 from .user_roles import UsersRoles
+
 from sqlalchemy.dialects.postgresql.base import UUID
 import os
 
@@ -35,6 +36,9 @@ class UserModel(db.Model, ModelMixin):
     # Relationships
     roles = db.relationship('Role', secondary='sc3_users_roles',
                             backref=db.backref('sc3_user_model', lazy='dynamic'))
+    votes = db.relationship('VoteModel', back_populates='user')
+    decisions = db.relationship('DecisionModel', back_populates='user')
+    comments = db.relationship('CommentModel', back_populates='user')
 
     def __init__(self, **kwargs):
         super(UserModel, self).__init__(**kwargs)
@@ -122,17 +126,17 @@ class UserModel(db.Model, ModelMixin):
             res = {'user_id': params['user_id']}
             res['bToken'] = sha256_crypt.encrypt(res['user_id'])
             return res
-        
+
         if params['auth_type'] == AUTH_GOOGLE:
             res = {'user_id': params['user_id']}
             res['bToken'] = sha256_crypt.encrypt(res['user_id'])
             return res
-        
+
         if params['auth_type'] == AUTH_SAP:
             res = {'user_id': params['user_id']}
             res['bToken'] = sha256_crypt.encrypt(res['user_id'])
             return res
-        
+
         else:  # TOKEN BASED THINGY???
             return cls.getUserFromToken(params)
 
@@ -156,13 +160,13 @@ class UserModel(db.Model, ModelMixin):
             if not exists:
                 cls.create_user(params)
             return cls.getUser(params)
-        
+
         if params['auth_type'] == AUTH_GOOGLE:
             exists = cls.exists_in_db(params['email'])
             if not exists:
                 cls.create_user(params)
             return cls.getUser(params)
-        
+
         if params['auth_type'] == AUTH_SAP:
             exists = cls.exists_in_db(params['email'])
             if not exists:
@@ -202,11 +206,11 @@ class UserModel(db.Model, ModelMixin):
         if auth_type == AUTH_GITLAB:
             user = db.session.query(UserModel).filter_by(email_address=email).first()
             return {"user_id": str(user.uuid)}
-        
+
         if auth_type == AUTH_GOOGLE:
             user = db.session.query(UserModel).filter_by(email_address=email).first()
             return {"user_id": str(user.uuid)}
-        
+
         if auth_type == AUTH_SAP:
             user = db.session.query(UserModel).filter_by(email_address=email).first()
             return {"user_id": str(user.uuid)}
