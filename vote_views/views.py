@@ -14,8 +14,9 @@ class CreateNewVote(MethodView):
         assignee = UserModel.query.filter_by(display_name=reqargs.get("assignee")).first()
         experts = UserModel.getAllUsers()
         vote_type = reqargs.get("type")
+        vote_reason = reqargs.get("reason")
 
-        vote = VoteModel.initiate_new_vote(term_uuid, assignee, experts, vote_type)
+        vote = VoteModel.initiate_new_vote(term_uuid, assignee, experts, vote_type, vote_reason)
 
         if not vote:
             return jsonify({"result": False, "message": "Vote already exists, Please use any other name"})
@@ -70,6 +71,8 @@ class GetTermVote(MethodView):
                                "status": vote.status.value,
                                "assignee": vote.user.display_name,
                                "type": vote.type.value,
+                               "reason": vote.reason,
+                               "created_at": vote.created_at,
                                "decisions": [{
                                    "vote_id": decision.vote_id,
                                    "user_name": decision.user.display_name,
