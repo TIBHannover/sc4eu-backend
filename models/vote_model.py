@@ -19,6 +19,7 @@ class VoteModel(db.Model, ModelMixin):
 
     status = db.Column(db.Enum(VoteStatus), nullable=False)
     type = db.Column(db.Enum(VoteType), nullable=False)
+    reason = db.Column(db.String, nullable=True)
 
     user = db.relationship('UserModel', back_populates='votes')
     decisions = db.relationship('DecisionModel', back_populates='vote', lazy="dynamic")
@@ -28,9 +29,10 @@ class VoteModel(db.Model, ModelMixin):
         super(VoteModel, self).__init__(**kwargs)
 
     @classmethod
-    def initiate_new_vote(cls, term_uuid, assignee, users, vote_type):
+    def initiate_new_vote(cls, term_uuid, assignee, users, vote_type, vote_reason):
         new_entry = VoteModel()
         new_entry.type = VoteType[vote_type]
+        new_entry.reason = vote_reason
         new_entry.term_uuid = term_uuid
         new_entry.status = VoteStatus.UNDER_AGREEMENT
         new_entry.discussion = DiscussionModel.default_discussion(new_entry)
