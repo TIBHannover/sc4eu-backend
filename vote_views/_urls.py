@@ -1,7 +1,7 @@
 from flask import Blueprint
 
 from vote_views.views import CreateNewVote, GetTermVote, UpdateVoteDecision, GetVotes, AddNewComment, GetDiscussion, \
-    GetTermsWithActiveVotes, GetComments, PostNewComments
+    GetTermsWithActiveVotes, GetComments, PostNewComments, ManualVoteClose
 
 term_blueprint = Blueprint('term', __name__, url_prefix='/terms')
 vote_blueprint = Blueprint('vote', __name__, url_prefix='/<string:term_uuid>/votes')
@@ -53,3 +53,5 @@ vote_blueprint.add_url_rule(
 vote_blueprint.add_url_rule('<string:vote_uuid>/comments', view_func=GetComments.as_view('get_comments'), methods=['GET'])
 
 vote_blueprint.add_url_rule('<string:vote_uuid>/comments', view_func=PostNewComments.as_view('post_new_comment'), methods=['POST'])
+
+vote_blueprint.add_url_rule('<string:vote_uuid>/close', view_func=ManualVoteClose.as_view('manual_close'), methods=['PUT'])

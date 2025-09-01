@@ -64,23 +64,19 @@ class VoteModel(db.Model, ModelMixin):
             return cls.query.filter_by(status=VoteStatus.UNDER_AGREEMENT).first()
 
     @classmethod
-    def update_vote(cls, vote_uuid, **fields_to_update):
-        vote = VoteModel.get_vote_by_uuid(vote_uuid)
-        if vote:
-            for key, value in fields_to_update.items():
-                if hasattr(vote, key):
-                    setattr(vote, key, value)
+    def update_vote(cls, vote, **fields_to_update):
+        for key, value in fields_to_update.items():
+            if hasattr(vote, key):
+                setattr(vote, key, value)
+            else:
                 return {"error": f"Vote does not have an attribute: {key}"}
 
-            db.session.commit()
-            return {"success": f"Vote {vote_uuid} updated"}
+        db.session.commit()
+        return {"success": f"Vote {vote.uuid} updated"}
 
     @classmethod
-    def admin_close_vote(cls, user_uuid, vote_uuid):
-        user_role = UserModel.get_user_role_for_id(user_uuid)
-        if user_role != 'Admin':
-            return {"error": "How you even made this call?"}
-        VoteModel.update_vote(vote_uuid, status=VoteStatus.CLOSED)
+    def admin_close_vote(cls, vote):
+        return VoteModel.update_vote(vote, status=VoteStatus.CLOSED)
 
     @classmethod
     def update_vote_decision(cls, vote_uuid, user, choice, comment):
