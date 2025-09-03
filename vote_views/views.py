@@ -60,9 +60,9 @@ class GetTermVote(MethodView):
             if term_uuid:
                 votes_query = VoteModel.get_all_votes_for_term_uuid(term_uuid)
                 if votes_query:
-                    status = VoteStatus(request.args.get("status"))
+                    status = request.args.get("status")
                     if status:
-                        votes_query = votes_query.filter_by(status=status)
+                        votes_query = votes_query.filter_by(status=VoteStatus(status))
 
                     votes = votes_query.all()
 
@@ -174,3 +174,11 @@ class GetComments(MethodView):
                 "created_at": c.created_at.isoformat()
             } for c in comments]
         })
+
+class ManualVoteClose(MethodView):
+    def put(self, term_uuid, vote_uuid):
+        vote = VoteModel.query.filter_by(uuid=vote_uuid).first_or_404()
+        print(vote)
+        if not vote:
+            return jsonify({'error': "No vote found"})
+        return jsonify(VoteModel.admin_close_vote(vote))
