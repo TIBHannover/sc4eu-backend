@@ -7,6 +7,7 @@ from models import UserModel
 from models import Role
 from models import ProjectModel
 from models import OntologyIndexingModel
+from extensions import db
 
 load_dotenv()  # take environment variables from .env.
 
@@ -23,6 +24,7 @@ def index():
 
 if __name__ == "__main__":
     with app.app_context():
+        db.create_all()
         Role.initialize()
         UserModel.initialize_admin_user()
         ProjectModel.initializeDefaultProject()
