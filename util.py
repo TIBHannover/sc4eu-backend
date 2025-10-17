@@ -1,8 +1,7 @@
 from werkzeug.routing import BaseConverter
 from webargs.flaskparser import use_args
 import numpy as np
-import flask.json as json
-
+from json import JSONEncoder
 
 class ListConverter(BaseConverter):
     """Convert the remaining path segments to a list"""
@@ -19,7 +18,7 @@ class ListConverter(BaseConverter):
         return u"/".join(value)
 
 
-class NumpyEncoder(json.JSONEncoder):
+class NumpyEncoder(JSONEncoder):
     """ Special json encoder for numpy types """
 
     def default(self, obj):
@@ -29,7 +28,7 @@ class NumpyEncoder(json.JSONEncoder):
             return float(obj)
         elif isinstance(obj, (np.ndarray,)):
             return obj.tolist()
-        return json.JSONEncoder.default(self, obj)
+        return JSONEncoder.default(self, obj)
 
 
 def use_args_with(schema_cls, schema_kwargs=None, **kwargs):
