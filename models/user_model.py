@@ -80,7 +80,7 @@ class UserModel(db.Model, ModelMixin):
                     role = cls.get_user_role_for_id(user_id)
                     print({"displayName": name, "gravatarId": gravatar_id, "userId": user.uuid, "role": role,
                            "is_email_valid": is_email_valid})
-                    return {"displayName": name, "userEmail": email, "gravatarId": gravatar_id, "userId": user.uuid,
+                    return {"displayName": name, "userEmail": email, "gravatarId": gravatar_id, "userId": str(user.uuid),
                             "role": role}
                 else:
                     return {"error": "User is not verified"}
