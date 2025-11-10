@@ -10,20 +10,24 @@ from .enums.vote_type import VoteType
 
 
 class VoteModel(db.Model, ModelMixin):
-    __tablename__ = 'sc3_vote_model'
+    __tablename__ = "sc3_vote_model"
 
-    id = db.Column('hash_id', db.Integer, primary_key=True, unique=True)
-    uuid = db.Column('uuid', UUID(as_uuid=True), unique=True, default=uuid4)
-    term_uuid = db.Column('term_uuid', UUID(as_uuid=True), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('sc3_user_model.hash_id'), nullable=False)
+    id = db.Column("hash_id", db.Integer, primary_key=True, unique=True)
+    uuid = db.Column("uuid", UUID(as_uuid=True), unique=True, default=uuid4)
+    term_uuid = db.Column("term_uuid", UUID(as_uuid=True), nullable=False)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("sc3_user_model.hash_id"), nullable=False
+    )
 
     status = db.Column(db.Enum(VoteStatus), nullable=False)
     type = db.Column(db.Enum(VoteType), nullable=False)
     reason = db.Column(db.String, nullable=True)
 
-    user = db.relationship('UserModel', back_populates='votes')
-    decisions = db.relationship('DecisionModel', back_populates='vote', lazy="dynamic")
-    discussion = db.relationship('DiscussionModel', back_populates='vote', uselist=False)
+    user = db.relationship("UserModel", back_populates="votes")
+    decisions = db.relationship("DecisionModel", back_populates="vote", lazy="dynamic")
+    discussion = db.relationship(
+        "DiscussionModel", back_populates="vote", uselist=False
+    )
 
     def __init__(self, **kwargs):
         super(VoteModel, self).__init__(**kwargs)
@@ -59,9 +63,22 @@ class VoteModel(db.Model, ModelMixin):
 
     @classmethod
     def get_active_vote_for_term_uuid(cls, term_uuid):
-        votes = cls.get_all_votes_for_term_uuid(term_uuid)
-        if votes:
-            return cls.query.filter_by(status=VoteStatus.UNDER_AGREEMENT).first()
+        return cls.query.filter_by(
+            term_uuid=term_uuid, status=VoteStatus.UNDER_AGREEMENT
+        ).first()
+
+    @classmethod
+    def get_last_non_active_consensus_for_term_uuid(cls, term_uuid):
+        return (
+            cls.query.filter(
+                cls.term_uuid == term_uuid,
+                cls.status.notin_(
+                    [VoteStatus.UNDER_AGREEMENT, VoteStatus.UNDER_REVISION]
+                ),
+            )
+            .order_by(cls.created_at.desc())
+            .first()
+        )
 
     @classmethod
     def update_vote(cls, vote, **fields_to_update):
