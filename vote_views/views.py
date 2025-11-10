@@ -72,13 +72,14 @@ class GetTermVote(MethodView):
                                "assignee": vote.user.display_name,
                                "type": vote.type.value,
                                "reason": vote.reason,
-                               "created_at": vote.created_at,
+                               "created_at": vote.created_at.isoformat(),
                                "decisions": [{
                                    "vote_id": decision.vote_id,
                                    "user_name": decision.user.display_name,
                                    "comment": decision.comment,
                                    "choice": decision.choice,
-                                   "updated_at": decision.updated_at
+                                   "created_at": decision.created_at.isoformat(),
+                                   "updated_at": decision.updated_at.isoformat()
                                } for decision in vote.decisions],
                                "discussion": {
                                    "comments": [{
