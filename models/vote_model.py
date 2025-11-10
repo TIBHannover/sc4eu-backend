@@ -33,7 +33,7 @@ class VoteModel(db.Model, ModelMixin):
         super(VoteModel, self).__init__(**kwargs)
 
     @classmethod
-    def initiate_new_vote(cls, term_uuid, assignee, users, vote_type, vote_reason):
+    def initiate_new_vote(cls, term_uuid, assignee, vote_type, vote_reason):
         new_entry = VoteModel()
         new_entry.type = VoteType[vote_type]
         new_entry.reason = vote_reason
@@ -41,7 +41,7 @@ class VoteModel(db.Model, ModelMixin):
         new_entry.status = VoteStatus.UNDER_AGREEMENT
         new_entry.discussion = DiscussionModel.default_discussion(new_entry)
         new_entry.user = assignee
-        new_entry.decisions = [DecisionModel.default_for_user(user) for user in users]
+        new_entry.decisions = []
 
         db.session.add(new_entry)
         db.session.commit()

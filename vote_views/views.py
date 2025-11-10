@@ -12,11 +12,10 @@ class CreateNewVote(MethodView):
         reqargs = request.get_json()
 
         assignee = UserModel.query.filter_by(display_name=reqargs.get("assignee")).first()
-        experts = UserModel.getAllUsers()
         vote_type = reqargs.get("type")
         vote_reason = reqargs.get("reason")
 
-        vote = VoteModel.initiate_new_vote(term_uuid, assignee, experts, vote_type, vote_reason)
+        vote = VoteModel.initiate_new_vote(term_uuid, assignee, vote_type, vote_reason)
 
         if not vote:
             return jsonify({"result": False, "message": "Vote already exists, Please use any other name"})
