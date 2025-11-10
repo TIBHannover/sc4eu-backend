@@ -34,10 +34,3 @@ class DecisionModel(db.Model, ModelMixin):
         decision.choice = choice
         decision.comment = comment
         db.session.commit()
-
-        from models import VoteModel
-        vote = db.session.query(VoteModel).filter_by(id=decision.vote_id).first()
-        decisions = vote.decisions.all()
-        if all(decision.choice == "approved" for decision in decisions):
-            vote.status = VoteStatus.APPROVED.value
-            db.session.commit()
