@@ -190,7 +190,7 @@ class AdminDashboard(MethodView):
         def execute():
             users = UserModel.get_all_users_for_dashboard()
             if users:
-                all_users = [{"uuid": user.uuid,
+                all_users = [{"uuid": str(user.uuid),
                               "auth_type": user.auth_type,
                               "display_name": user.display_name,
                               "email_valid": user.email_valid,
@@ -369,7 +369,7 @@ class GetAllUsers(MethodView):
         def execute():
             users = UserModel.get_all_users_for_dashboard()
             if users:
-                all_users = [{"uuid": user.uuid,
+                all_users = [{"uuid": str(user.uuid),
                               "auth_type": user.auth_type,
                               "display_name": user.display_name,
                               "email_valid": user.email_valid,

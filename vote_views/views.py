@@ -25,7 +25,7 @@ class CreateNewVote(MethodView):
             {
                 "result": True,
                 "creation": 'successful',
-                "Find new vote under: ": vote.uuid
+                "Find new vote under: ": str(vote.uuid)
             })
 
 
