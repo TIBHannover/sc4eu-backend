@@ -49,17 +49,15 @@ class VoteModel(db.Model, ModelMixin):
 
     @classmethod
     def get_votes(cls):
-        return VoteModel.query.order_by(VoteModel.created_at.desc())
+        return cls.query.order_by(VoteModel.created_at.desc())
 
     @classmethod
     def get_vote_by_uuid(cls, vote_uuid):
-        return VoteModel.query.filter_by(uuid=vote_uuid).first()
+        return cls.query.filter_by(uuid=vote_uuid).first()
 
     @classmethod
     def get_all_votes_for_term_uuid(cls, term_uuid):
-        votes = cls.get_votes().all()
-        if votes:
-            return cls.query.filter_by(term_uuid=term_uuid)
+        return cls.query.filter_by(term_uuid=term_uuid)
 
     @classmethod
     def get_active_vote_for_term_uuid(cls, term_uuid):
@@ -93,28 +91,28 @@ class VoteModel(db.Model, ModelMixin):
 
     @classmethod
     def admin_close_vote(cls, vote):
-        return VoteModel.update_vote(vote, status=VoteStatus.CLOSED)
+        return cls.update_vote(vote, status=VoteStatus.CLOSED)
 
     @classmethod
     def update_vote_decision(cls, vote_uuid, user, choice, comment):
-        vote = VoteModel.get_vote_by_uuid(vote_uuid)
+        vote = cls.get_vote_by_uuid(vote_uuid)
         if vote:
-            # user_id = UserModel.get_user_id_for_uuid(user_uuid)
             decision = vote.decisions.filter_by(user_id=user.id).first()
             if decision:
                 DecisionModel.update_user_decision(decision, choice, comment)
-                return {"success": f"Decision for {vote.uuid} updated with {user.id} choice"}
+                return {
+                    "success": f"Decision for {vote.uuid} updated with {user.id} choice"
+                }
+            else:
+                DecisionModel.add_decision(vote, user, choice, comment)
             return {"error": "There is no such user in this vote's decision"}
 
     @classmethod
     def add_new_comment(cls, vote_uuid, user_id, text):
-        vote = VoteModel.get_vote_by_uuid(vote_uuid)
+        vote = cls.get_vote_by_uuid(vote_uuid)
         if vote:
             new_comment = CommentModel.create_new_comment(vote.id, user_id, text)
             db.session.add(new_comment)
             db.session.commit()
 
             return {"success": "New comment added"}
-
-
-
