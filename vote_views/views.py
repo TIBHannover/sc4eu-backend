@@ -12,11 +12,10 @@ class CreateNewVote(MethodView):
         reqargs = request.get_json()
 
         assignee = UserModel.query.filter_by(display_name=reqargs.get("assignee")).first()
-        experts = UserModel.getAllUsers()
         vote_type = reqargs.get("type")
         vote_reason = reqargs.get("reason")
 
-        vote = VoteModel.initiate_new_vote(term_uuid, assignee, experts, vote_type, vote_reason)
+        vote = VoteModel.initiate_new_vote(term_uuid, assignee, vote_type, vote_reason)
 
         if not vote:
             return jsonify({"result": False, "message": "Vote already exists, Please use any other name"})
@@ -25,7 +24,7 @@ class CreateNewVote(MethodView):
             {
                 "result": True,
                 "creation": 'successful',
-                "Find new vote under: ": vote.uuid
+                "Find new vote under: ": str(vote.uuid)
             })
 
 
@@ -72,13 +71,14 @@ class GetTermVote(MethodView):
                                "assignee": vote.user.display_name,
                                "type": vote.type.value,
                                "reason": vote.reason,
-                               "created_at": vote.created_at,
+                               "created_at": vote.created_at.isoformat(),
                                "decisions": [{
                                    "vote_id": decision.vote_id,
                                    "user_name": decision.user.display_name,
                                    "comment": decision.comment,
                                    "choice": decision.choice,
-                                   "updated_at": decision.updated_at
+                                   "created_at": decision.created_at.isoformat(),
+                                   "updated_at": decision.updated_at.isoformat()
                                } for decision in vote.decisions],
                                "discussion": {
                                    "comments": [{
@@ -110,6 +110,36 @@ class GetTermsWithActiveVotes(MethodView):
 
         return execute()
 
+class GetTermLastConsensus(MethodView):
+    def get(self, term_uuid):
+        def execute():
+            if term_uuid:
+                last_consensus = VoteModel.get_last_non_active_consensus_for_term_uuid(term_uuid)
+                if last_consensus:
+                    result = {
+                        "type": last_consensus.type.value,
+                        "status": last_consensus.status.value,
+                        "assignee": last_consensus.user.display_name,
+                        "reason": last_consensus.reason,
+                        "created_at": last_consensus.created_at.isoformat(),
+                        "decisions": [{
+                            "user_name": decision.user.display_name,
+                            "comment": decision.comment,
+                            "choice": decision.choice,
+                            "created_at": decision.created_at.isoformat(),
+                            "updated_at": decision.updated_at.isoformat()
+                        } for decision in last_consensus.decisions],
+                        "approved_decisions": sum(1 for d in last_consensus.decisions if d.choice == "approved"),
+                        "rejected_decisions": sum(1 for d in last_consensus.decisions if d.choice == "rejected"),
+                        "total_decisions": last_consensus.decisions.count(),
+                    }
+                    return jsonify(result)
+                else:
+                    return jsonify({'error': "No closed consensus found for provided term_uuid"})
+            else:
+                return jsonify({'error': "No term_uuid provided"})
+
+        return execute()
 
 class UpdateVoteDecision(MethodView):
     def put(self, term_uuid, vote_uuid):

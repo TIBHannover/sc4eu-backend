@@ -19,18 +19,18 @@ class DecisionModel(db.Model, ModelMixin):
         super(DecisionModel, self).__init__(**kwargs)
 
     @classmethod
-    def default_for_user(cls, user, choice=None, comment=None):
-        return cls(user=user, choice=choice, comment=comment)
+    def add_decision(cls, vote, user, choice, comment):
+        new_entry = DecisionModel()
+        new_entry.vote = vote
+        new_entry.user = user
+        new_entry.choice = choice
+        new_entry.comment = comment
+
+        db.session.add(new_entry)
+        db.session.commit()
 
     @classmethod
     def update_user_decision(cls, decision, choice, comment):
         decision.choice = choice
         decision.comment = comment
         db.session.commit()
-
-        from models import VoteModel
-        vote = db.session.query(VoteModel).filter_by(id=decision.vote_id).first()
-        decisions = vote.decisions.all()
-        if all(decision.choice == "approved" for decision in decisions):
-            vote.status = VoteStatus.APPROVED.value
-            db.session.commit()

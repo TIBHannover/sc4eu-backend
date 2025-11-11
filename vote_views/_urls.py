@@ -1,18 +1,28 @@
 from flask import Blueprint
 
-from vote_views.views import CreateNewVote, GetTermVote, UpdateVoteDecision, GetVotes, AddNewComment, GetDiscussion, \
-    GetTermsWithActiveVotes, GetComments, PostNewComments, ManualVoteClose
+from vote_views.views import (CreateNewVote, GetTermVote, UpdateVoteDecision, GetVotes, AddNewComment, GetDiscussion,
+                              GetTermsWithActiveVotes, GetComments, PostNewComments, ManualVoteClose, GetTermLastConsensus)
 
 term_blueprint = Blueprint('term', __name__, url_prefix='/terms')
 vote_blueprint = Blueprint('vote', __name__, url_prefix='/<string:term_uuid>/votes')
 
 term_blueprint.register_blueprint(vote_blueprint)
 
+# --- Term ROUTES ---
+
 term_blueprint.add_url_rule(
     '',
     view_func=GetTermsWithActiveVotes.as_view('get_terms_with_active_vote'),
     methods=['GET']
 )
+
+term_blueprint.add_url_rule(
+    '/consensus/<string:term_uuid>',
+    view_func=GetTermLastConsensus.as_view('get_term_last_consensus'),
+    methods=['GET']
+)
+
+# --- Consensus ROUTES ---
 
 vote_blueprint.add_url_rule(
     '',
@@ -28,14 +38,14 @@ vote_blueprint.add_url_rule(
 
 vote_blueprint.add_url_rule(
     '<string:vote_uuid>',
-    view_func=UpdateVoteDecision.as_view('update_vote_decision'),
-    methods=['PUT']
+    view_func=GetVotes.as_view('get_vote'),
+    methods=['GET']
 )
 
 vote_blueprint.add_url_rule(
     '<string:vote_uuid>',
-    view_func=GetVotes.as_view('get_vote'),
-    methods=['GET']
+    view_func=UpdateVoteDecision.as_view('update_vote_decision'),
+    methods=['PUT']
 )
 
 vote_blueprint.add_url_rule(
