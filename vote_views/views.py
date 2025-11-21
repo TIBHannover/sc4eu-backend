@@ -6,6 +6,8 @@ from models import UserModel, CommentModel
 from models.enums.vote_status import VoteStatus
 from models.vote_model import VoteModel
 
+from models.enums.decision_choice import DecisionChoice
+
 
 class CreateNewVote(MethodView):
     def post(self, term_uuid):
@@ -129,8 +131,8 @@ class GetTermLastConsensus(MethodView):
                             "created_at": decision.created_at.isoformat(),
                             "updated_at": decision.updated_at.isoformat()
                         } for decision in last_consensus.decisions],
-                        "approved_decisions": sum(1 for d in last_consensus.decisions if d.choice == "approved"),
-                        "rejected_decisions": sum(1 for d in last_consensus.decisions if d.choice == "rejected"),
+                        "approved_decisions": sum(d.choice == DecisionChoice.APPROVE.value for d in last_consensus.decisions),
+                        "rejected_decisions":  sum(d.choice == DecisionChoice.REJECT.value for d in last_consensus.decisions),
                         "total_decisions": last_consensus.decisions.count(),
                     }
                     return jsonify(result)
@@ -211,4 +213,6 @@ class ManualVoteClose(MethodView):
         print(vote)
         if not vote:
             return jsonify({'error': "No vote found"})
-        return jsonify(VoteModel.admin_close_vote(vote))
+
+        result = VoteModel.admin_close_vote(vote)
+        return jsonify(result)
