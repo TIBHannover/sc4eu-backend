@@ -5,6 +5,7 @@ from sqlalchemy.dialects.postgresql.base import UUID
 from uuid import uuid4
 
 from .dicsussion_model import DiscussionModel
+from .enums.decision_choice import DecisionChoice
 from .enums.vote_status import VoteStatus
 from .enums.vote_type import VoteType
 
@@ -78,6 +79,9 @@ class VoteModel(db.Model, ModelMixin):
             .first()
         )
 
+    # initially intended to update all term field, now used only for term's status
+    # if in a future an idea of updating other term fields arises, return must be updated
+    # for now will only be used with term's status
     @classmethod
     def update_vote(cls, vote, **fields_to_update):
         for key, value in fields_to_update.items():
@@ -87,11 +91,41 @@ class VoteModel(db.Model, ModelMixin):
                 return {"error": f"Vote does not have an attribute: {key}"}
 
         db.session.commit()
-        return {"success": f"Vote {vote.uuid} updated"}
+        return {
+            "success": f"Vote {vote.uuid} updated",
+            "status": vote.status.value
+        }
 
     @classmethod
     def admin_close_vote(cls, vote):
-        return cls.update_vote(vote, status=VoteStatus.CLOSED)
+        approved = sum(d.choice == DecisionChoice.APPROVE.value for d in vote.decisions)
+        rejected = sum(d.choice == DecisionChoice.REJECT.value for d in vote.decisions)
+        total = approved + rejected
+        threshold = 3
+
+        if total == 0:
+            return cls.update_vote(vote, status=VoteStatus.CLOSED)
+
+        def approved_type_status():
+            if vote.type == VoteType.ACCEPT:
+                return VoteStatus.ACCEPT
+            else:
+                return VoteStatus.NOT_ACCEPT
+
+        if approved >= threshold > rejected:
+            return cls.update_vote(vote, status=approved_type_status())
+        if rejected >= threshold > approved:
+            return cls.update_vote(vote, status=VoteStatus.DRAFT)
+
+        majority = total * 2 / 3
+        if approved > majority:
+            status = approved_type_status()
+        elif rejected > majority:
+            status = VoteStatus.DRAFT
+        else:
+            status = VoteStatus.CLOSED
+
+        return cls.update_vote(vote, status=status)
 
     @classmethod
     def update_vote_decision(cls, vote_uuid, user, choice, comment):
