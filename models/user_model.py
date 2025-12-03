@@ -43,6 +43,7 @@ class UserModel(db.Model, ModelMixin):
     def __init__(self, **kwargs):
         super(UserModel, self).__init__(**kwargs)
 
+    # Creates default admin user
     @classmethod
     def initialize_admin_user(cls):
         if os.environ["ADMIN_ADDRESS"]:
@@ -61,41 +62,6 @@ class UserModel(db.Model, ModelMixin):
 
                 db.session.add(new_entry)
                 db.session.commit()
-
-        if os.environ["ADMIN_ADDRESS2"]:
-            user = UserModel.query.filter_by(email_address=os.environ["ADMIN_ADDRESS2"]).first()
-            if user is None:
-                print("there is no admin user, creating one! ")
-                new_entry = UserModel()
-                new_entry.auth_type = AUTH_LOCAL
-                new_entry.display_name = "Jessica"
-                # // assign default role
-                _user_role = Role.query.filter(Role.name == 'System Admin').first()
-                new_entry.roles = [_user_role]  # default user role
-                new_entry.email_address = os.environ["ADMIN_ADDRESS2"]
-                new_entry.passwd_hash = sha256_crypt.encrypt(os.environ["ADMIN_SECRET2"])
-                new_entry.email_valid = True
-
-                db.session.add(new_entry)
-                db.session.commit()
-
-        if os.environ["ADMIN_ADDRESS3"]:
-            user = UserModel.query.filter_by(email_address=os.environ["ADMIN_ADDRESS3"]).first()
-            if user is None:
-                print("there is no admin user, creating one! ")
-                new_entry = UserModel()
-                new_entry.auth_type = AUTH_LOCAL
-                new_entry.display_name = "Alberto"
-                # // assign default role
-                _user_role = Role.query.filter(Role.name == 'System Admin').first()
-                new_entry.roles = [_user_role]  # default user role
-                new_entry.email_address = os.environ["ADMIN_ADDRESS3"]
-                new_entry.passwd_hash = sha256_crypt.encrypt(os.environ["ADMIN_SECRET3"])
-                new_entry.email_valid = True
-
-                db.session.add(new_entry)
-                db.session.commit()
-            # create a User
 
     @classmethod
     def get_header_info_for_user(cls, user_id, token):
