@@ -25,9 +25,17 @@ class VoteModel(db.Model, ModelMixin):
     reason = db.Column(db.String, nullable=True)
 
     user = db.relationship("UserModel", back_populates="votes")
-    decisions = db.relationship("DecisionModel", back_populates="vote", lazy="dynamic")
+    decisions = db.relationship(
+        "DecisionModel",
+        back_populates="vote",
+        lazy="dynamic",
+        cascade="all, delete-orphan",
+    )
     discussion = db.relationship(
-        "DiscussionModel", back_populates="vote", uselist=False
+        "DiscussionModel",
+        back_populates="vote",
+        uselist=False,
+        cascade="all, delete-orphan",
     )
 
     def __init__(self, **kwargs):
@@ -91,10 +99,7 @@ class VoteModel(db.Model, ModelMixin):
                 return {"error": f"Vote does not have an attribute: {key}"}
 
         db.session.commit()
-        return {
-            "success": f"Vote {vote.uuid} updated",
-            "status": vote.status.value
-        }
+        return {"success": f"Vote {vote.uuid} updated", "status": vote.status.value}
 
     @classmethod
     def admin_close_vote(cls, vote):
