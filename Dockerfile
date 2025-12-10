@@ -3,7 +3,7 @@ LABEL maintainer="Vitalis Wiens <Vitalis.Wiens@tib.eu>"
 
 WORKDIR /app
 
-ADD requirements.txt /app
+COPY requirements.txt /app
 
 # Install requirements
 RUN \
@@ -12,7 +12,7 @@ RUN \
   rm -rf ~/.cache/
 
 # Add the rest of the code to the app folder
-ADD . /app
+COPY . /app
 
 EXPOSE 5000
 

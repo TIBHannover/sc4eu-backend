@@ -42,7 +42,7 @@ def setup_sqlalchemy_uri(app_object):
     testing_env = bool(strtobool(os.getenv('TESTING_FLAG')))
     if testing_env:
         app_object.config[
-            "SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://sc3_postgres_user:sc3_postgres_password@localhost:5432/sc3_database"
+            "SQLALCHEMY_DATABASE_URI"] = f"postgresql+psycopg2://{user}:{passwd}@localhost:5432/{db}"
     else:
         if not uri:
             domain = 'localhost'
