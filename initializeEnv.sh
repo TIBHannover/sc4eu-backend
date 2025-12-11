@@ -4,7 +4,7 @@
 
 FILE=.env
 
-if test -f "$FILE"
+if [[ test -f "$FILE" ]]
 then
     echo "$FILE exists."
 else
