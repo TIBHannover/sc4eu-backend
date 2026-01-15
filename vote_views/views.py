@@ -105,9 +105,19 @@ class GetTermsWithActiveVotes(MethodView):
         def execute():
             status = VoteStatus(request.args.get("status"))
             votes = VoteModel.get_votes().filter_by(status=status).all()
-            result = {}
-            for vote in votes:
-                result.setdefault(str(vote.term_uuid), []).append(str(vote.uuid))
+            result = [{
+                "term_uuid": str(vote.term_uuid),
+                "vote_uuid" : str(vote.uuid),
+                "decisions": [{
+                    "vote_id": decision.vote_id,
+                    "user_name": decision.user.display_name,
+                    "comment": decision.comment,
+                    "choice": decision.choice,
+                    "created_at": decision.created_at.isoformat(),
+                    "updated_at": decision.updated_at.isoformat()
+                } for decision in vote.decisions],
+            }for vote in votes]
+
             return jsonify(result)
 
         return execute()
