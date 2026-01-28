@@ -1,7 +1,7 @@
 from extensions import db
 from models._base import ModelMixin
 from models.enums.vote_status import VoteStatus
-
+from sqlalchemy import UniqueConstraint
 
 class DecisionModel(db.Model, ModelMixin):
     __tablename__ = 'sc3_decision_model'
@@ -14,6 +14,10 @@ class DecisionModel(db.Model, ModelMixin):
 
     vote = db.relationship('VoteModel', back_populates='decisions')
     user = db.relationship('UserModel', back_populates='decisions')
+
+    __table_args__ = (
+        UniqueConstraint('user_id', 'vote_id', name='unique_user_vote'),
+    )
 
     def __init__(self, **kwargs):
         super(DecisionModel, self).__init__(**kwargs)
