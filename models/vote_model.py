@@ -1,9 +1,11 @@
+import datetime
+
 from extensions import db
 from . import UserModel, DecisionModel, CommentModel
 from ._base import ModelMixin
 from sqlalchemy.dialects.postgresql.base import UUID
 from uuid import uuid4
-
+from sqlalchemy import select, func, desc
 from .dicsussion_model import DiscussionModel
 from .enums.decision_choice import DecisionChoice
 from .enums.vote_status import VoteStatus
@@ -155,3 +157,22 @@ class VoteModel(db.Model, ModelMixin):
             db.session.commit()
 
             return {"success": "New comment added"}
+
+    @classmethod
+    def consensus_with_most_choices_in_week(cls):
+        week_delta = datetime.datetime.now() - timedelta(days=7)
+
+        choices_counts = (
+            select(
+                cls.uuid.label("vote_uuid"),
+                cls.term_uuid,
+                func.count(DecisionModel.id).label("choice_count"),
+            )
+            .join(cls.decisions)
+            .where(cls.status == VoteStatus.UNDER_AGREEMENT,
+                   DecisionModel.created_at >= week_delta)
+            .group_by(cls.uuid, cls.term_uuid)
+            .order_by(desc("choice_count"))
+        )
+
+        return db.session.execute(choices_counts).all()

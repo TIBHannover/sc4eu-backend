@@ -8,6 +8,8 @@ from models.vote_model import VoteModel
 
 from models.enums.decision_choice import DecisionChoice
 
+from datetime import datetime, timedelta
+
 
 class CreateNewVote(MethodView):
     def post(self, term_uuid):
@@ -107,7 +109,7 @@ class GetTermsWithActiveVotes(MethodView):
             votes = VoteModel.get_votes().filter_by(status=status).all()
             result = [{
                 "term_uuid": str(vote.term_uuid),
-                "vote_uuid" : str(vote.uuid),
+                "vote_uuid": str(vote.uuid),
                 "decisions": [{
                     "vote_id": decision.vote_id,
                     "user_name": decision.user.display_name,
@@ -116,11 +118,12 @@ class GetTermsWithActiveVotes(MethodView):
                     "created_at": decision.created_at.isoformat(),
                     "updated_at": decision.updated_at.isoformat()
                 } for decision in vote.decisions],
-            }for vote in votes]
+            } for vote in votes]
 
             return jsonify(result)
 
         return execute()
+
 
 class GetTermLastConsensus(MethodView):
     def get(self, term_uuid):
@@ -141,8 +144,10 @@ class GetTermLastConsensus(MethodView):
                             "created_at": decision.created_at.isoformat(),
                             "updated_at": decision.updated_at.isoformat()
                         } for decision in last_consensus.decisions],
-                        "approved_decisions": sum(d.choice == DecisionChoice.APPROVE.value for d in last_consensus.decisions),
-                        "rejected_decisions":  sum(d.choice == DecisionChoice.REJECT.value for d in last_consensus.decisions),
+                        "approved_decisions": sum(
+                            d.choice == DecisionChoice.APPROVE.value for d in last_consensus.decisions),
+                        "rejected_decisions": sum(
+                            d.choice == DecisionChoice.REJECT.value for d in last_consensus.decisions),
                         "total_decisions": last_consensus.decisions.count(),
                     }
                     return jsonify(result)
@@ -152,6 +157,7 @@ class GetTermLastConsensus(MethodView):
                 return jsonify({'error': "No term_uuid provided"})
 
         return execute()
+
 
 class UpdateVoteDecision(MethodView):
     def put(self, term_uuid, vote_uuid):
@@ -179,6 +185,7 @@ class GetDiscussion(MethodView):
         vote = VoteModel.get_vote_by_uuid(vote_uuid)
         if vote:
             return jsonify({"discussion": vote.discussion.to_dict()})
+
 
 class PostNewComments(MethodView):
     def post(self, term_uuid, vote_uuid):
@@ -217,6 +224,7 @@ class GetComments(MethodView):
             } for c in comments]
         })
 
+
 class ManualVoteClose(MethodView):
     def put(self, term_uuid, vote_uuid):
         vote = VoteModel.query.filter_by(uuid=vote_uuid).first_or_404()
@@ -226,3 +234,21 @@ class ManualVoteClose(MethodView):
 
         result = VoteModel.admin_close_vote(vote)
         return jsonify(result)
+
+
+class GetTermConsensusOfWeek(MethodView):
+    def get(self):
+        choices = VoteModel.count_choices_in_consensuses()
+
+        if not choices:
+            return "", 204
+
+        most_choices_consensus = choices[0]
+
+        return jsonify(
+            {
+                "vote_uuid": str(most_choices_consensus.vote_uuid),
+                "term_uuid": str(most_choices_consensus.term_uuid),
+                "choice_count": most_choices_consensus.choice_count
+            }
+        ), 200
