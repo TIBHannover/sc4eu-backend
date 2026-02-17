@@ -238,7 +238,7 @@ class ManualVoteClose(MethodView):
 
 class GetTermConsensusOfWeek(MethodView):
     def get(self):
-        choices = VoteModel.count_choices_in_consensuses()
+        choices = VoteModel.consensus_with_most_choices_in_week()
 
         if not choices:
             return "", 204
