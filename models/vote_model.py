@@ -1,5 +1,3 @@
-import datetime
-
 from extensions import db
 from . import UserModel, DecisionModel, CommentModel
 from ._base import ModelMixin
@@ -10,7 +8,7 @@ from .dicsussion_model import DiscussionModel
 from .enums.decision_choice import DecisionChoice
 from .enums.vote_status import VoteStatus
 from .enums.vote_type import VoteType
-
+from datetime import datetime, timedelta
 
 class VoteModel(db.Model, ModelMixin):
     __tablename__ = "sc3_vote_model"
