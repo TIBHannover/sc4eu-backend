@@ -158,7 +158,7 @@ class VoteModel(db.Model, ModelMixin):
 
     @classmethod
     def consensus_with_most_choices_in_week(cls):
-        week_delta = datetime.datetime.now() - timedelta(days=7)
+        week_delta = datetime.now() - timedelta(days=7)
 
         choices_counts = (
             select(
