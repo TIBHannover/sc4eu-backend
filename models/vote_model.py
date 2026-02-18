@@ -1,5 +1,5 @@
 from extensions import db
-from . import UserModel, DecisionModel, CommentModel
+from . import DecisionModel, CommentModel
 from ._base import ModelMixin
 from sqlalchemy.dialects.postgresql.base import UUID
 from uuid import uuid4
@@ -43,18 +43,27 @@ class VoteModel(db.Model, ModelMixin):
 
     @classmethod
     def initiate_new_vote(cls, term_uuid, assignee, vote_type, vote_reason):
-        new_entry = VoteModel()
-        new_entry.type = VoteType[vote_type]
-        new_entry.reason = vote_reason
-        new_entry.term_uuid = term_uuid
-        new_entry.status = VoteStatus.UNDER_AGREEMENT
-        new_entry.discussion = DiscussionModel.default_discussion(new_entry)
-        new_entry.user = assignee
-        new_entry.decisions = []
+        try:
+            existing_vote = cls.get_active_vote_for_term_uuid(term_uuid)
 
-        db.session.add(new_entry)
-        db.session.commit()
-        return new_entry
+            if existing_vote:
+                return None
+
+            new_entry = VoteModel()
+            new_entry.type = VoteType[vote_type]
+            new_entry.reason = vote_reason
+            new_entry.term_uuid = term_uuid
+            new_entry.status = VoteStatus.UNDER_AGREEMENT
+            new_entry.discussion = DiscussionModel.default_discussion(new_entry)
+            new_entry.user = assignee
+            new_entry.decisions = []
+
+            db.session.add(new_entry)
+            db.session.commit()
+            return new_entry
+        except Exception:
+            db.session.rollback()
+            return None
 
     @classmethod
     def get_votes(cls):
@@ -90,7 +99,6 @@ class VoteModel(db.Model, ModelMixin):
     # initially intended to update all term field, now used only for term's status
     # if in a future an idea of updating other term fields arises, return must be updated
     # for now will only be used with term's status
-    @classmethod
     def update_vote(cls, vote, **fields_to_update):
         for key, value in fields_to_update.items():
             if hasattr(vote, key):
@@ -106,7 +114,7 @@ class VoteModel(db.Model, ModelMixin):
         approved = sum(d.choice == DecisionChoice.APPROVE.value for d in vote.decisions)
         rejected = sum(d.choice == DecisionChoice.REJECT.value for d in vote.decisions)
         total = approved + rejected
-        threshold = 3
+        threshold = 4
 
         if total == 0:
             return cls.update_vote(vote, status=VoteStatus.CLOSED)
@@ -122,7 +130,7 @@ class VoteModel(db.Model, ModelMixin):
         if rejected >= threshold > approved:
             return cls.update_vote(vote, status=VoteStatus.DRAFT)
 
-        majority = total * 2 / 3
+        majority = total * 3 / 4
         if approved > majority:
             status = approved_type_status()
         elif rejected > majority:
@@ -145,6 +153,7 @@ class VoteModel(db.Model, ModelMixin):
             else:
                 DecisionModel.add_decision(vote, user, choice, comment)
             return {"error": "There is no such user in this vote's decision"}
+        return {"error": f"Vote with {vote_uuid} not found"}
 
     @classmethod
     def add_new_comment(cls, vote_uuid, user_id, text):
@@ -155,10 +164,12 @@ class VoteModel(db.Model, ModelMixin):
             db.session.commit()
 
             return {"success": "New comment added"}
+        return {"error": f"Vote with {vote_uuid} not found"}
 
+    # Should have a delta equal to 7 days. Currently, has period of last year
     @classmethod
     def consensus_with_most_choices_in_week(cls):
-        week_delta = datetime.now() - timedelta(days=700)
+        delta = datetime.now() - timedelta(days=365)
 
         choices_counts = (
             select(
@@ -168,7 +179,7 @@ class VoteModel(db.Model, ModelMixin):
             )
             .join(cls.decisions)
             .where(cls.status == VoteStatus.UNDER_AGREEMENT,
-                   DecisionModel.created_at >= week_delta)
+                   DecisionModel.created_at >= delta)
             .group_by(cls.uuid, cls.term_uuid)
             .order_by(desc("choice_count"))
         )

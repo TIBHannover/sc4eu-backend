@@ -163,4 +163,4 @@ class UsersProjects(db.Model):
                                                                             user_id=userId).first() is None
         if project_user_not_exists:
             res = cls.add_user_project(userId, projectId)
-            return jsonify({'result': res})
+            return {'result': res}
