@@ -82,7 +82,7 @@ class NewVoteRequest(BaseModel):
     reason: Optional[str] = None
 
 
-@term_router.get("/consensus/{term_uuid}", response_model=NonActiveConsensus)
+@term_router.get("/consensus/{term_uuid}", response_model=Optional[NonActiveConsensus])
 async def get_consensus_term_uuid(
     term_uuid: str = Path(title="Term universally unique identifier (UUID)"),
     db_session: Session = Depends(get_db),
@@ -102,6 +102,7 @@ async def get_consensus_term_uuid(
         .first()
     )
 
+    logger.error(f"last consensus: {last_consensus}")
     if not last_consensus:
         return None
 
