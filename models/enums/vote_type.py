@@ -9,13 +9,13 @@ class VoteType(Enum):
         return self.value
 
     @classmethod
-    def is_valid(cls, choice):
+    def is_valid(cls, vote):
         try:
-            cls(choice)
+            cls(vote)
             return True
         except ValueError:
             return False
 
     @classmethod
-    def get_valid_choices(cls):
+    def get_valid_options(cls):
         return [item.value for item in cls]

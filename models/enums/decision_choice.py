@@ -17,5 +17,9 @@ class DecisionChoice(Enum):
             return False
 
     @classmethod
-    def get_valid_choices(cls):
+    def get_valid_options(cls):
         return [item.value for item in cls]
+
+    @staticmethod
+    def to_string():
+        return ', '.join(DecisionChoice.get_valid_options())

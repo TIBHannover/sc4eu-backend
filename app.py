@@ -10,21 +10,19 @@ from models import OntologyIndexingModel
 
 load_dotenv()  # take environment variables from .env.
 
-app = create_app()
-app.secret_key = 'development'
-
+flask_app = create_app()
+flask_app.secret_key = 'development'
 
 # Initializing the role models with default values
 
-@app.route('/')
+@flask_app.route('/')
 def index():
     return "Ontology Data Infrastructure"
 
-
 if __name__ == "__main__":
-    with app.app_context():
+    with flask_app.app_context():
         Role.initialize()
         UserModel.initialize_admin_user()
         ProjectModel.initializeDefaultProject()
         OntologyIndexingModel.initializeDefaultData()
-    app.run(host=app.config['HOST'], port=app.config['PORT'])
+    flask_app.run(host=flask_app.config['HOST'], port=flask_app.config['PORT'])
