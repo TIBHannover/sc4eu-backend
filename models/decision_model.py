@@ -19,22 +19,26 @@ class DecisionModel(db.Model, ModelMixin):
         UniqueConstraint('user_id', 'vote_id', name='unique_user_vote'),
     )
 
+    @property
+    def user_name(self) -> str:
+        return self.user.display_name
+        
     def __init__(self, **kwargs):
         super(DecisionModel, self).__init__(**kwargs)
 
     @classmethod
-    def add_decision(cls, vote, user, choice, comment):
+    def add_decision(cls, db_session, vote, user, choice, comment):
         new_entry = DecisionModel()
         new_entry.vote = vote
         new_entry.user = user
         new_entry.choice = choice
         new_entry.comment = comment
 
-        db.session.add(new_entry)
-        db.session.commit()
+        db_session.add(new_entry)
+        db_session.commit()
 
     @classmethod
-    def update_user_decision(cls, decision, choice, comment):
+    def update_user_decision(cls, db_session, decision, choice, comment):
         decision.choice = choice
         decision.comment = comment
-        db.session.commit()
+        db_session.commit()

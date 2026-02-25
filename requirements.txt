@@ -17,3 +17,9 @@ passlib
 flask-login
 libgravatar
 requests
+setuptools
+
+#for fastapi:
+fastapi
+uvicorn
+loguru

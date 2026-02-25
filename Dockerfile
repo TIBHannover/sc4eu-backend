@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.14-trixie
 LABEL maintainer="Vitalis Wiens <Vitalis.Wiens@tib.eu>"
 
 WORKDIR /app
@@ -15,6 +15,9 @@ RUN \
 COPY . /app
 
 EXPOSE 5000
+EXPOSE 5050
 
 # Apply the migration to the database and run the application
-CMD flask db upgrade && python app.py
+CMD flask db upgrade && \
+    python app.py & \
+    python app_fastapi_factory.py
