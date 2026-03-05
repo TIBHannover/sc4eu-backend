@@ -215,12 +215,8 @@ async def close_vote(
     if not vote:
         return None
 
-    print(vote.term_uuid)
-    # result = VoteModel.admin_close_vote(db_session, vote)
-    notify_new_vote(db_session, vote)
-    return {"status": "ok"}
-
-
+    result = VoteModel.admin_close_vote(db_session, vote)
+    return result
 
 @term_vote_router.put("/{vote_uuid}")
 async def update_vote_decision(
