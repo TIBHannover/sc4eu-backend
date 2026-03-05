@@ -1,6 +1,8 @@
 FROM python:3.14-trixie
 LABEL maintainer="Vitalis Wiens <Vitalis.Wiens@tib.eu>"
 
+ENV PYTHONPATH=/app
+
 WORKDIR /app
 
 COPY requirements.txt /app

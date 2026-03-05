@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from vote_views.views import term_router, vote_router, term_vote_router
-
+from views.notification_view import notification_router
 from dotenv import load_dotenv
 import os
 
@@ -8,6 +8,7 @@ fastapi_app = FastAPI(title="FastAPI Vote Service")
 fastapi_app.include_router(term_router)
 fastapi_app.include_router(vote_router)
 fastapi_app.include_router(term_vote_router)
+fastapi_app.include_router(notification_router)
 
 load_dotenv()
 

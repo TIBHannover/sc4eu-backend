@@ -6,6 +6,7 @@ from .user_model import UserModel
 from .user_roles import UsersRoles
 from .project_ontology import ProjectOntology
 from .user_projects import UsersProjects
+from .push_subscription_model import PushSubscriptionModel
 
 #Vote related
 from .decision_model import DecisionModel

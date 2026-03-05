@@ -39,7 +39,8 @@ class UserModel(db.Model, ModelMixin):
     votes = db.relationship('VoteModel', back_populates='user', cascade="all, delete-orphan")
     decisions = db.relationship('DecisionModel', back_populates='user', cascade="all, delete-orphan")
     comments = db.relationship('CommentModel', back_populates='user', cascade="all, delete-orphan")
-
+    subscriptions = db.relationship('PushSubscriptionModel', back_populates='user', cascade="all, delete-orphan")
+    
     def __init__(self, **kwargs):
         super(UserModel, self).__init__(**kwargs)
 

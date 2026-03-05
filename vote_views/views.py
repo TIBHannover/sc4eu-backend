@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Body, HTTPException, Query, Path, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict
+from services.notifications import notify_new_vote
 from models import UserModel
 from models.enums.vote_status import VoteStatus
 from models.vote_model import VoteModel
@@ -214,8 +215,11 @@ async def close_vote(
     if not vote:
         return None
 
-    result = VoteModel.admin_close_vote(db_session, vote)
-    return result
+    print(vote.term_uuid)
+    # result = VoteModel.admin_close_vote(db_session, vote)
+    notify_new_vote(db_session, vote)
+    return {"status": "ok"}
+
 
 
 @term_vote_router.put("/{vote_uuid}")
