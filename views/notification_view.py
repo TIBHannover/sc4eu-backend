@@ -1,6 +1,7 @@
 from typing import List, Optional
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, HTTPException
 from pydantic import BaseModel
+from backend.models.user_model import UserModel
 from models.push_subscription_model import PushSubscriptionModel
 from sqlalchemy.orm import Session
 from extensions import get_db
@@ -14,6 +15,7 @@ class PushSubscriptionKeys(BaseModel):
 
 
 class SubscribeObject(BaseModel):
+    username: str
     endpoint: str
     keys: PushSubscriptionKeys
     reason: Optional[List[str]] = None
@@ -27,8 +29,15 @@ async def create_new_push(
     db_session: Session = Depends(get_db),
 ):
     print(f"Endpoint called with {payload.endpoint}")
+
+    user = db_session.query(UserModel).filter_by(display_name=payload.username).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=400, detail=f"User with username {payload.username} not found")
+
     subscription = PushSubscriptionModel(
-        user_id=1,
+        user_id=user.id,
         endpoint=payload.endpoint,
         p256dh=payload.keys.p256dh,
         auth=payload.keys.auth,
