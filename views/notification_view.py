@@ -1,7 +1,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException
 from pydantic import BaseModel
-from backend.models.user_model import UserModel
+from models.user_model import UserModel
 from models.push_subscription_model import PushSubscriptionModel
 from sqlalchemy.orm import Session
 from extensions import get_db
