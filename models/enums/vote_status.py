@@ -6,7 +6,6 @@ class VoteStatus(Enum):
     ACCEPT = "accept"
     NOT_ACCEPT = "not accept"
     CLOSED = "closed"
-    DRAFT = "draft"
     
     def __str__(self):
         return self.value
