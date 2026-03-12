@@ -12,7 +12,7 @@ def send_push(subscription, payload, vapid_private_key, vapid_claims):
         )        
         return True
         
-    except WebPushException:
+    except WebPushException as e:
         traceback.print_exc()
         return False
         

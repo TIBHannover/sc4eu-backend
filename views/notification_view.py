@@ -5,6 +5,7 @@ from models.user_model import UserModel
 from models.push_subscription_model import PushSubscriptionModel
 from sqlalchemy.orm import Session
 from extensions import get_db
+from services.notifications import notify_new_term
 
 notification_router = APIRouter(prefix="/api/push", tags=["notifications"])
 
@@ -22,6 +23,9 @@ class SubscribeObject(BaseModel):
 
 class UnsubscribeObject(BaseModel):
     endpoint: str
+
+class UpdateTermObject(BaseModel):
+    update: str
 
 @notification_router.post("/subscribe")
 async def create_new_push(
@@ -63,3 +67,12 @@ async def remove_existing_push(
 
     db_session.query(PushSubscriptionModel).filter_by(endpoint=payload.endpoint).delete()
     db_session.commit()
+
+@notification_router.post("/notifyTerms")
+async def notify_existing_terms(
+    payload: UpdateTermObject = Body(description="Update that happened with terms in vocabualary"),
+    db_session: Session = Depends(get_db),
+):
+    print(f"Endpoint called with {payload.update}")
+
+    notify_new_term(db_session, payload.update)
