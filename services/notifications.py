@@ -64,6 +64,15 @@ def notify_new_term(db_session, update):
 
     make_notify(db_session, payload)
 
+def notify_new_comment(db_session, update):
+    payload = {
+        "title": update,
+        "body": "Placeholder text",
+        "url": "/ocp/terms/PLACEHOLDER",
+        "type": "COMMENTS_ADDED",
+    }
+
+    make_notify(db_session, payload)
 
 def notify_new_vote(db_session, vote):
     payload = {

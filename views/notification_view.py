@@ -5,7 +5,7 @@ from models.user_model import UserModel
 from models.push_subscription_model import PushSubscriptionModel
 from sqlalchemy.orm import Session
 from extensions import get_db
-from services.notifications import notify_new_term
+from services.notifications import notify_new_term, notify_new_comment
 
 notification_router = APIRouter(prefix="/api/push", tags=["notifications"])
 
@@ -76,3 +76,12 @@ async def notify_existing_terms(
     print(f"Endpoint called with {payload.update}")
 
     notify_new_term(db_session, payload.update)
+
+@notification_router.post("/notifyComments")
+async def notify_new_comments(
+    payload: UpdateTermObject = Body(description="New comment update object"),
+    db_session: Session = Depends(get_db),
+):
+    print(f"Endpoint called with {payload.update}")
+
+    notify_new_comment(db_session, payload.update)
