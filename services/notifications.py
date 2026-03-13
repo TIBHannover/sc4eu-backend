@@ -1,9 +1,9 @@
 from .push import send_push
 import os
 from models.push_subscription_model import PushSubscriptionModel
+from urllib.parse import urlparse
 
 VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY")
-VAPID_CLAIMS = {"sub": "mailto:admin@example.com"}
 
 
 def make_notify(db_session, payload):
@@ -32,7 +32,12 @@ def make_notify(db_session, payload):
             },
             payload=payload,
             vapid_private_key=VAPID_PRIVATE_KEY,
-            vapid_claims=VAPID_CLAIMS,
+            vapid_claims={
+                "sub": "mailto:admin@example.com",
+                "aud": urlparse(sub.endpoint).scheme
+                + "://"
+                + urlparse(sub.endpoint).netloc,
+            },
         )
 
         if result == "expired":
@@ -64,6 +69,7 @@ def notify_new_term(db_session, update):
 
     make_notify(db_session, payload)
 
+
 def notify_new_comment(db_session, update):
     payload = {
         "title": update,
@@ -73,6 +79,7 @@ def notify_new_comment(db_session, update):
     }
 
     make_notify(db_session, payload)
+
 
 def notify_new_vote(db_session, vote):
     payload = {
