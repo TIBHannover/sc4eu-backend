@@ -151,16 +151,17 @@ class VoteModel(db.Model, ModelMixin):
             else:
                 return VoteStatus.NOT_ACCEPT
 
-        if approved >= threshold > rejected:
+        if (approved >= threshold) and (rejected == 0):
             return VoteModel.update_vote(db_session, vote, status=approved_type_status())
-        if rejected >= threshold > approved:
-            return VoteModel.update_vote(db_session, vote, status=VoteStatus.DRAFT)
+        if (rejected >= threshold) > (approved == 0):
+            return VoteModel.update_vote(db_session, vote, status=VoteStatus.CLOSED)
 
+        if total < threshold:
+            return VoteModel.update_vote(db_session, vote, status=VoteStatus.CLOSED)
+            
         majority = total * 3 / 4
         if approved > majority:
             status = approved_type_status()
-        elif rejected > majority:
-            status = VoteStatus.DRAFT
         else:
             status = VoteStatus.CLOSED
 

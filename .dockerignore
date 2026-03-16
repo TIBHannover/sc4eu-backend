@@ -5,6 +5,8 @@
 !ontology_indexing
 !user_views
 !vote_views
+!services
+!views
 !.env
 !*.py
 !requirements.txt

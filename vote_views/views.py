@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Body, HTTPException, Query, Path, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict
+from services.notifications import notify_close_vote, notify_new_vote
 from models import UserModel
 from models.enums.vote_status import VoteStatus
 from models.vote_model import VoteModel
@@ -200,6 +201,8 @@ async def create_new_vote(
             detail=f"There is already an ongoing consensus for {term_uuid} term",
         )
 
+    notify_new_vote(db_session, vote)
+    
     return JSONResponse(content=str(vote.uuid), status_code=201)
 
 
@@ -215,8 +218,8 @@ async def close_vote(
         return None
 
     result = VoteModel.admin_close_vote(db_session, vote)
+    notify_close_vote(db_session, vote)
     return result
-
 
 @term_vote_router.put("/{vote_uuid}")
 async def update_vote_decision(

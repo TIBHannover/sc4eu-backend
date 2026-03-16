@@ -23,3 +23,7 @@ setuptools
 fastapi
 uvicorn
 loguru
+
+#for webpush
+pywebpush
+py-vapid
