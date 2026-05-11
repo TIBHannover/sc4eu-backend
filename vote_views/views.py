@@ -17,6 +17,7 @@ term_router = APIRouter(prefix="/terms", tags=["terms"])
 vote_router = APIRouter(prefix="/votes", tags=["votes"])
 term_vote_router = APIRouter(prefix="/terms/{term_uuid}/votes", tags=["term_votes"])
 
+
 class Decision(BaseModel):
     vote_id: int
     user_id: int
@@ -66,10 +67,12 @@ class NonActiveConsensus(BaseModel):
     total_decisions: int
     model_config = ConfigDict(from_attributes=True)
 
+
 class ConsensusOfWeek(BaseModel):
     term_uuid: UUID
     vote_uuid: UUID
     choice_count: int
+
 
 class VoteUpdateRequest(BaseModel):
     user_name: str
@@ -202,9 +205,35 @@ async def create_new_vote(
         )
 
     notify_new_vote(db_session, vote)
-    
+
     return JSONResponse(content=str(vote.uuid), status_code=201)
 
+@term_router.delete((""))
+async def delete_term_votes(
+    term_uuids: list[str] = Body(description="List of term universally unique identifier (UUID)"),
+    db_session: Session = Depends(get_db),
+):
+    logger.error(f"Inside delete_term_votes endpoint with {term_uuids}")
+    votes = db_session.query(VoteModel).filter(VoteModel.term_uuid.in_(term_uuids)).all()
+
+    if not votes:
+        return []
+
+    failed = []
+    removed = []
+    for vote in votes:
+        try: 
+            db_session.delete(vote)
+            db_session.flush()
+            removed.append({"uuid": str(vote.uuid)})
+            logger.error(f"Vote with {vote.uuid} has been deleted")
+        except Exception as e:
+            db_session.rollback()
+            failed.append({ "uuid": str(vote.uuid), "reason": str(e) })
+            logger.error(f"Failed to delete vote {vote.uuid}: {e}")
+
+    db_session.commit()
+    return { "removed": removed, "failed": failed }
 
 @term_vote_router.put("/{vote_uuid}/close")
 async def close_vote(
@@ -220,6 +249,7 @@ async def close_vote(
     result = VoteModel.admin_close_vote(db_session, vote)
     notify_close_vote(db_session, vote)
     return result
+
 
 @term_vote_router.put("/{vote_uuid}")
 async def update_vote_decision(
