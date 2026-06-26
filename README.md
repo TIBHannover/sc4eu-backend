@@ -1,7 +1,6 @@
 # Backend Database
-We use flask and postgres for the backend database.
-
-STATE: <b>experimental</b>
+We use flask and postgres for the backend database port 5000.
+Vote related endpoints are using fastAPI on port 5050
 
 The database schema is not yet fully designed, thus we need to do some preparations before we can start the service.
 
