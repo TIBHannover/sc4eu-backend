@@ -22,6 +22,10 @@ class DecisionModel(db.Model, ModelMixin):
     @property
     def user_name(self) -> str:
         return self.user.display_name
+    
+    @property
+    def user_uuid(self):
+        return self.user.uuid
         
     def __init__(self, **kwargs):
         super(DecisionModel, self).__init__(**kwargs)
