@@ -145,14 +145,8 @@ class VoteModel(db.Model, ModelMixin):
         if total == 0:
             return VoteModel.update_vote(db_session, vote, status=VoteStatus.CLOSED)
 
-        def approved_type_status():
-            if vote.type == VoteType.ACCEPT:
-                return VoteStatus.ACCEPT
-            else:
-                return VoteStatus.NOT_ACCEPT
-
         if (approved >= threshold) and (rejected == 0):
-            return VoteModel.update_vote(db_session, vote, status=approved_type_status())
+            return VoteModel.update_vote(db_session, vote, status=VoteStatus.ACCEPT)
         if (rejected >= threshold) and (approved == 0):
             return VoteModel.update_vote(db_session, vote, status=VoteStatus.CLOSED)
 
@@ -161,7 +155,7 @@ class VoteModel(db.Model, ModelMixin):
             
         majority = total * 3 / 4
         if approved > majority:
-            status = approved_type_status()
+            status = VoteStatus.ACCEPT
         else:
             status = VoteStatus.CLOSED
 

@@ -4,7 +4,6 @@ class VoteStatus(Enum):
     UNDER_AGREEMENT = "under_agreement"
     UNDER_REVISION = "under_revision"
     ACCEPT = "accept"
-    NOT_ACCEPT = "not accept"
     CLOSED = "closed"
     
     def __str__(self):
