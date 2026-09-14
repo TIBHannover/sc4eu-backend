@@ -4,6 +4,7 @@ class DecisionChoice(Enum):
     COMMENT = 'comment'
     APPROVE = 'approved'
     REJECT = 'rejected'
+    ABSTAIN = 'abstain'
 
     def __str__(self):
         return self.value
