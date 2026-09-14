@@ -153,7 +153,7 @@ class VoteModel(db.Model, ModelMixin):
 
         if (approved >= threshold) and (rejected == 0):
             return VoteModel.update_vote(db_session, vote, status=approved_type_status())
-        if (rejected >= threshold) > (approved == 0):
+        if (rejected >= threshold) and (approved == 0):
             return VoteModel.update_vote(db_session, vote, status=VoteStatus.CLOSED)
 
         if total < threshold:

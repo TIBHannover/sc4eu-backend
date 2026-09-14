@@ -21,6 +21,7 @@ term_vote_router = APIRouter(prefix="/terms/{term_uuid}/votes", tags=["term_vote
 class Decision(BaseModel):
     vote_id: int
     user_id: int
+    user_uuid: UUID
     user_name: str
     comment: Optional[str]
     choice: Optional[str]
@@ -37,8 +38,6 @@ class Comment(BaseModel):
 class Discussion(BaseModel):
     vote_id: int
     comments: Optional[List[Comment]]
-
-
 class Vote(BaseModel):
     uuid: UUID
     term_uuid: UUID
