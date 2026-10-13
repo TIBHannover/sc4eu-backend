@@ -1,7 +1,7 @@
 from extensions import db
 from models._base import ModelMixin
-from models.enums.vote_status import VoteStatus
 from sqlalchemy import UniqueConstraint
+from datetime import datetime, UTC
 
 class DecisionModel(db.Model, ModelMixin):
     __tablename__ = 'sc3_decision_model'
@@ -38,6 +38,7 @@ class DecisionModel(db.Model, ModelMixin):
         new_entry.choice = choice
         new_entry.comment = comment
 
+        new_entry.vote.updated_at = datetime.now(UTC)
         db_session.add(new_entry)
         db_session.commit()
 
@@ -45,4 +46,5 @@ class DecisionModel(db.Model, ModelMixin):
     def update_user_decision(cls, db_session, decision, choice, comment):
         decision.choice = choice
         decision.comment = comment
+        decision.vote.updated_at = datetime.now(UTC)
         db_session.commit()

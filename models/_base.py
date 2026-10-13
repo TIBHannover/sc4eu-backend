@@ -1,22 +1,21 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy.dialects.postgresql.base import UUID
 from extensions import db
-from datetime import datetime
+from datetime import datetime, UTC
 from uuid import uuid4
 import six
-
 
 class ModelMixin(object):
     __tablename__ = None
 
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
 
-    created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    updated_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     def save(self):
         try:
-            self.updated_at = datetime.utcnow()
+            self.updated_at = datetime.now(UTC)
             db.session.add(self)
             db.session.commit()
         except:
