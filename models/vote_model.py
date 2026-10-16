@@ -43,6 +43,10 @@ class VoteModel(db.Model, ModelMixin):
         return self.user.display_name
     
     @property
+    def assignee_uuid(self) -> UUID:
+        return self.user.uuid
+
+    @property
     def approved_decisions(self) -> int:
         return sum(
             1

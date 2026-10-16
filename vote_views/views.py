@@ -43,6 +43,7 @@ class Vote(BaseModel):
     term_uuid: UUID
     user_id: int
     assignee: str
+    assignee_uuid: UUID
     status: str
     type: str
     reason: Optional[str]
@@ -57,6 +58,7 @@ class NonActiveConsensus(BaseModel):
     type: str
     status: str
     assignee: str
+    assignee_uuid: UUID
     reason: Optional[str]
     created_at: datetime
     updated_at: datetime
