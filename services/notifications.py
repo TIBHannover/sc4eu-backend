@@ -77,7 +77,7 @@ def make_notify(db_session, payload, user_names: list[str] | None = None):
 def notify_term_update(db_session, title, body, term_uuid, type):
     notification_url = f"{CLIENT_PUBLIC_URL}/vocabulary_support/terms/{term_uuid}"
     if type == TermUpdateType.Delete:
-        notification_url = "{CLIENT_PUBLIC_URL}/vocabulary_support/"
+        notification_url = f"{CLIENT_PUBLIC_URL}/vocabulary_support/"
 
     payload = {
         "title": title,
