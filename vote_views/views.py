@@ -1,17 +1,18 @@
-from typing import List, Optional
+from datetime import datetime
+from typing import Optional
 from uuid import UUID
-from fastapi import APIRouter, Body, HTTPException, Query, Path, Depends
+
+from extensions import get_db
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict
-from services.notifications import notify_close_vote, notify_new_vote
+from loguru import logger
 from models import UserModel
+from models.enums.decision_choice import DecisionChoice
 from models.enums.vote_status import VoteStatus
 from models.vote_model import VoteModel
-from models.enums.decision_choice import DecisionChoice
-from datetime import datetime
+from pydantic import BaseModel, ConfigDict
+from services.notifications import notify_close_vote, notify_new_vote
 from sqlalchemy.orm import Session
-from loguru import logger
-from extensions import get_db
 
 term_router = APIRouter(prefix="/terms", tags=["terms"])
 vote_router = APIRouter(prefix="/votes", tags=["votes"])
@@ -37,7 +38,7 @@ class Comment(BaseModel):
 
 class Discussion(BaseModel):
     vote_id: int
-    comments: Optional[List[Comment]]
+    comments: Optional[list[Comment]]
 class Vote(BaseModel):
     uuid: UUID
     term_uuid: UUID
@@ -49,7 +50,7 @@ class Vote(BaseModel):
     reason: Optional[str]
     created_at: datetime
     updated_at: datetime
-    decisions: List[Decision]
+    decisions: list[Decision]
     discussion: Optional[Discussion]
     model_config = ConfigDict(from_attributes=True)
 
@@ -62,7 +63,7 @@ class NonActiveConsensus(BaseModel):
     reason: Optional[str]
     created_at: datetime
     updated_at: datetime
-    decisions: List[Decision]
+    decisions: list[Decision]
     approved_decisions: int
     rejected_decisions: int
     total_decisions: int
@@ -127,7 +128,7 @@ async def get_consensus_of_the_week(
     return choices[0]
 
 
-@vote_router.get("", response_model=List[Vote])
+@vote_router.get("", response_model=list[Vote])
 async def get_all_votes(
     status: Optional[str] = Query(None, description="Filter by status"),
     db_session: Session = Depends(get_db),
@@ -145,7 +146,7 @@ async def get_all_votes(
     return votes_query.order_by(VoteModel.created_at.desc()).all()
 
 
-@term_vote_router.get("", response_model=Optional[List[Vote]])
+@term_vote_router.get("", response_model=Optional[list[Vote]])
 async def get_votes(
     term_uuid: Optional[str] = Path(title="Term universally unique identifier (UUID)"),
     status: Optional[str] = Query(None, description="Filter by status"),
