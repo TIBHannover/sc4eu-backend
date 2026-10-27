@@ -1,11 +1,15 @@
 from typing import List, Optional
-from fastapi import APIRouter, Body, Depends, HTTPException
-from pydantic import BaseModel
-from models.user_model import UserModel
-from models.push_subscription_model import PushSubscriptionModel
-from sqlalchemy.orm import Session
+from uuid import UUID
+
 from extensions import get_db
-from services.notifications import notify_new_term, notify_new_comment
+from fastapi import APIRouter, Body, Depends, HTTPException
+from models.push_subscription_model import PushSubscriptionModel
+from models.user_model import UserModel
+from pydantic import BaseModel
+from services.notifications import notify_new_comment, notify_term_update
+from sqlalchemy.orm import Session
+
+from models.enums.term_update_type import TermUpdateType
 
 notification_router = APIRouter(prefix="/api/push", tags=["notifications"])
 
@@ -13,7 +17,6 @@ notification_router = APIRouter(prefix="/api/push", tags=["notifications"])
 class PushSubscriptionKeys(BaseModel):
     p256dh: str
     auth: str
-
 
 class SubscribeObject(BaseModel):
     username: str
@@ -25,7 +28,14 @@ class UnsubscribeObject(BaseModel):
     endpoint: str
 
 class UpdateTermObject(BaseModel):
-    update: str
+    title: str
+    body: str
+    update_type: TermUpdateType
+    term_uuid: UUID
+class NewMentionCommentObject(BaseModel):
+    title: str
+    term_uuid: UUID
+    mentioned_user_names: List[str]
 
 @notification_router.post("/subscribe")
 async def create_new_push(
@@ -73,15 +83,15 @@ async def notify_existing_terms(
     payload: UpdateTermObject = Body(description="Update that happened with terms in vocabualary"),
     db_session: Session = Depends(get_db),
 ):
-    print(f"Endpoint called with {payload.update}")
+    print(f"Endpoint called with {payload.title}")
 
-    notify_new_term(db_session, payload.update)
+    notify_term_update(db_session, payload.title, payload.body, payload.term_uuid, payload.update_type)
 
 @notification_router.post("/notifyComments")
 async def notify_new_comments(
-    payload: UpdateTermObject = Body(description="New comment update object"),
+    payload: NewMentionCommentObject = Body(description="New comment update object"),
     db_session: Session = Depends(get_db),
 ):
-    print(f"Endpoint called with {payload.update}")
+    print(f"Endpoint called with {payload.title}")
 
-    notify_new_comment(db_session, payload.update)
+    notify_new_comment(db_session, payload.title, payload.term_uuid, payload.mentioned_user_names)
