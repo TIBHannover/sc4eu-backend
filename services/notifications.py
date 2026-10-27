@@ -1,14 +1,29 @@
-from .push import send_push
 import os
-from models.push_subscription_model import PushSubscriptionModel
+from typing import Optional
 from urllib.parse import urlparse
 
+from models.enums.term_update_type import TermUpdateType
+from models.push_subscription_model import PushSubscriptionModel
+from models.user_model import UserModel
+
+from .push import send_push
+
 VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY")
+CLIENT_PUBLIC_URL = os.environ.get("CLIENT_PUBLIC_URL")
 
+def make_notify(db_session, payload, user_names: list[str] | None = None):
+    query = db_session.query(PushSubscriptionModel)
 
-def make_notify(db_session, payload):
-    payload = payload
-    subscriptions = db_session.query(PushSubscriptionModel).all()
+    if user_names:
+        mentioned_ids = [
+            user.id
+            for user in db_session.query(UserModel).filter(
+                UserModel.display_name.in_(user_names)
+            )
+        ]
+        query = query.filter(PushSubscriptionModel.user_id.in_(mentioned_ids))
+
+    subscriptions = query.all()
 
     if not subscriptions:
         return {"total": 0, "successful": 0, "expired": 0}
@@ -59,33 +74,37 @@ def make_notify(db_session, payload):
     }
 
 
-def notify_new_term(db_session, update):
+def notify_term_update(db_session, title, body, term_uuid, type):
+    notification_url = f"{CLIENT_PUBLIC_URL}/vocabulary_support/terms/{term_uuid}"
+    if type == TermUpdateType.Delete:
+        notification_url = "{CLIENT_PUBLIC_URL}/vocabulary_support/"
+
     payload = {
-        "title": update,
-        "body": "Placeholder text",
-        "url": "/ocp/terms/PLACEHOLDER",
+        "title": title,
+        "body": body,
+        "url": notification_url,
         "type": "TERMS_UPDATED",
     }
 
     make_notify(db_session, payload)
 
 
-def notify_new_comment(db_session, update):
+def notify_new_comment(db_session, title, term_uuid, mentioned_user_names):
     payload = {
-        "title": update,
-        "body": "Placeholder text",
-        "url": "/ocp/terms/PLACEHOLDER",
+        "title": title,
+        "body": "You were mentioned in a term",
+        "url": f"{CLIENT_PUBLIC_URL}/vocabulary_support/terms/{term_uuid}",
         "type": "COMMENTS_ADDED",
     }
 
-    make_notify(db_session, payload)
+    make_notify(db_session, payload, mentioned_user_names)
 
 
 def notify_new_vote(db_session, vote):
     payload = {
-        "title": "New ontology vote created",
-        "body": f"A new vote was created for term {vote.term_uuid}",
-        "url": f"/ocp/terms/{vote.term_uuid}",
+        "title": f"A new vote was created for term {vote.term_uuid}",
+        "body": "Click to see",
+        "url": f"{CLIENT_PUBLIC_URL}/vocabulary_support/terms/{vote.term_uuid}/consensuses/{vote.uuid}",
         "type": "VOTE_CREATED",
         "vote_id": str(vote.uuid),
     }
@@ -97,7 +116,7 @@ def notify_close_vote(db_session, vote):
     payload = {
         "title": "Vote has been closed",
         "body": f"Vote with {vote.term_uuid} has been closed by the administrator",
-        "url": f"/ocp/terms/{vote.term_uuid}",
+        "url": f"{CLIENT_PUBLIC_URL}/vocabulary_support/terms/{vote.term_uuid}",
         "type": "VOTE_CLOSED",
         "vote_id": str(vote.uuid),
     }
