@@ -38,7 +38,8 @@ def requires_role(allowed_roles, *outer_args, **outer_kwargs):
 
     return wrapper
 
-#TODO: Find out if e-mail isn't send after API change
+
+# TODO: Find out if e-mail isn't send after API change
 @users_blueprint.route("/users/register/", methods=["POST"])
 def register_user():
     result = UserModel.create_user(request.json)
@@ -113,6 +114,21 @@ def user_login():
 
     # SAP auth
     if auth_type == "AUTH_SAP":
+        # we assume this is a token based authorization
+        user = UserModel.find_or_create_user(
+            {
+                "email": request.json["email"],
+                "display_name": request.json["displayName"],
+                "auth_type": request.json["auth_type"],
+                "email_valid": True,
+            }
+        )
+        res = UserModel.find_or_login_user(
+            {"user_id": user["user_id"], "auth_type": request.json["auth_type"]}
+        )
+
+    # LinkedIn auth
+    if auth_type == "AUTH_LINKEDIN":
         # we assume this is a token based authorization
         user = UserModel.find_or_create_user(
             {

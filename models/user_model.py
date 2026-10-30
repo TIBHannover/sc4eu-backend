@@ -19,28 +19,42 @@ AUTH_TOKEN = "AUTH_TOKEN"
 AUTH_GITLAB = "AUTH_GITLAB"
 AUTH_GOOGLE = "AUTH_GOOGLE"
 AUTH_SAP = "AUTH_SAP"
+AUTH_LINKEDIN = "AUTH_LINKEDIN"
 
 
 class UserModel(db.Model, ModelMixin):
-    __tablename__ = 'sc3_user_model'
+    __tablename__ = "sc3_user_model"
 
-    id = db.Column('hash_id', db.Integer, primary_key=True, unique=True)
-    uuid = db.Column('uuid', UUID(as_uuid=True), unique=True, default=uuid4)
-    display_name = db.Column('display_name', db.String)
-    email_address = db.Column('email_address', db.String)
-    passwd_hash = db.Column('passwd_hash', db.String)
-    auth_type = db.Column('auth_type', db.String)
-    email_valid = db.Column('email_valid', db.Boolean, default=False)
-    active = db.Column('account_active', db.Boolean, default=True)  # admin could disable accounts
+    id = db.Column("hash_id", db.Integer, primary_key=True, unique=True)
+    uuid = db.Column("uuid", UUID(as_uuid=True), unique=True, default=uuid4)
+    display_name = db.Column("display_name", db.String)
+    email_address = db.Column("email_address", db.String)
+    passwd_hash = db.Column("passwd_hash", db.String)
+    auth_type = db.Column("auth_type", db.String)
+    email_valid = db.Column("email_valid", db.Boolean, default=False)
+    active = db.Column(
+        "account_active", db.Boolean, default=True
+    )  # admin could disable accounts
 
     # Relationships
-    roles = db.relationship('Role', secondary='sc3_users_roles',
-                            backref=db.backref('sc3_user_model', lazy='dynamic'))
-    votes = db.relationship('VoteModel', back_populates='user', cascade="all, delete-orphan")
-    decisions = db.relationship('DecisionModel', back_populates='user', cascade="all, delete-orphan")
-    comments = db.relationship('CommentModel', back_populates='user', cascade="all, delete-orphan")
-    subscriptions = db.relationship('PushSubscriptionModel', back_populates='user', cascade="all, delete-orphan")
-    
+    roles = db.relationship(
+        "Role",
+        secondary="sc3_users_roles",
+        backref=db.backref("sc3_user_model", lazy="dynamic"),
+    )
+    votes = db.relationship(
+        "VoteModel", back_populates="user", cascade="all, delete-orphan"
+    )
+    decisions = db.relationship(
+        "DecisionModel", back_populates="user", cascade="all, delete-orphan"
+    )
+    comments = db.relationship(
+        "CommentModel", back_populates="user", cascade="all, delete-orphan"
+    )
+    subscriptions = db.relationship(
+        "PushSubscriptionModel", back_populates="user", cascade="all, delete-orphan"
+    )
+
     def __init__(self, **kwargs):
         super(UserModel, self).__init__(**kwargs)
 
@@ -48,14 +62,16 @@ class UserModel(db.Model, ModelMixin):
     @classmethod
     def initialize_admin_user(cls):
         if os.environ["ADMIN_ADDRESS"]:
-            user = UserModel.query.filter_by(email_address=os.environ["ADMIN_ADDRESS"]).first()
+            user = UserModel.query.filter_by(
+                email_address=os.environ["ADMIN_ADDRESS"]
+            ).first()
             if user is None:
                 print("there is no admin user, creating one! ")
                 new_entry = UserModel()
                 new_entry.auth_type = AUTH_LOCAL
                 new_entry.display_name = "System ADMIN"
                 # // assign default role
-                _user_role = Role.query.filter(Role.name == 'System Admin').first()
+                _user_role = Role.query.filter(Role.name == "System Admin").first()
                 new_entry.roles = [_user_role]  # default user role
                 new_entry.email_address = os.environ["ADMIN_ADDRESS"]
                 new_entry.passwd_hash = sha256_crypt.encrypt(os.environ["ADMIN_SECRET"])
@@ -78,10 +94,22 @@ class UserModel(db.Model, ModelMixin):
                     g = Gravatar(email)
                     gravatar_id = g.email_hash
                     role = cls.get_user_role_for_id(user_id)
-                    print({"displayName": name, "gravatarId": gravatar_id, "userId": user.uuid, "role": role,
-                           "is_email_valid": is_email_valid})
-                    return {"displayName": name, "userEmail": email, "gravatarId": gravatar_id, "userId": str(user.uuid),
-                            "role": role}
+                    print(
+                        {
+                            "displayName": name,
+                            "gravatarId": gravatar_id,
+                            "userId": user.uuid,
+                            "role": role,
+                            "is_email_valid": is_email_valid,
+                        }
+                    )
+                    return {
+                        "displayName": name,
+                        "userEmail": email,
+                        "gravatarId": gravatar_id,
+                        "userId": str(user.uuid),
+                        "role": role,
+                    }
                 else:
                     return {"error": "User is not verified"}
             else:
@@ -91,18 +119,22 @@ class UserModel(db.Model, ModelMixin):
 
     @classmethod
     def find_or_login_user(cls, params):
-        if params['auth_type'] == AUTH_LOCAL:
-            exists = cls.exists_in_db(params['email'])
-            is_email_valid = cls.is_email_valid(params['email'])
+        if params["auth_type"] == AUTH_LOCAL:
+            exists = cls.exists_in_db(params["email"])
+            is_email_valid = cls.is_email_valid(params["email"])
 
             if exists:
-                user = db.session.query(UserModel).filter_by(email_address=params['email']).first()
+                user = (
+                    db.session.query(UserModel)
+                    .filter_by(email_address=params["email"])
+                    .first()
+                )
                 if is_email_valid:
                     res = cls.getUser(params)
                     # create a bToken
                     # we create an ssh encryption using the user id
-                    if (res["success"]):
-                        res['bToken'] = sha256_crypt.encrypt(res['user_id'])
+                    if res["success"]:
+                        res["bToken"] = sha256_crypt.encrypt(res["user_id"])
                     return res
                 else:
                     return {
@@ -111,30 +143,34 @@ class UserModel(db.Model, ModelMixin):
                         "displayName": str(user.display_name),
                         "success": False,
                         "error": "Your email is not verified. Please Click on the link that has just been sent your "
-                                 "email account to verify your email than Sign In"}
+                        "email account to verify your email than Sign In",
+                    }
             else:
-                return {
-                    "success": False,
-                    "error": "Error: No such user exists"}
+                return {"success": False, "error": "Error: No such user exists"}
 
-        if params['auth_type'] == AUTH_GITHUB:
-            res = {'user_id': params['user_id']}
-            res['bToken'] = sha256_crypt.encrypt(res['user_id'])
+        if params["auth_type"] == AUTH_GITHUB:
+            res = {"user_id": params["user_id"]}
+            res["bToken"] = sha256_crypt.encrypt(res["user_id"])
             return res
 
-        if params['auth_type'] == AUTH_GITLAB:
-            res = {'user_id': params['user_id']}
-            res['bToken'] = sha256_crypt.encrypt(res['user_id'])
+        if params["auth_type"] == AUTH_GITLAB:
+            res = {"user_id": params["user_id"]}
+            res["bToken"] = sha256_crypt.encrypt(res["user_id"])
             return res
 
-        if params['auth_type'] == AUTH_GOOGLE:
-            res = {'user_id': params['user_id']}
-            res['bToken'] = sha256_crypt.encrypt(res['user_id'])
+        if params["auth_type"] == AUTH_GOOGLE:
+            res = {"user_id": params["user_id"]}
+            res["bToken"] = sha256_crypt.encrypt(res["user_id"])
             return res
 
-        if params['auth_type'] == AUTH_SAP:
-            res = {'user_id': params['user_id']}
-            res['bToken'] = sha256_crypt.encrypt(res['user_id'])
+        if params["auth_type"] == AUTH_SAP:
+            res = {"user_id": params["user_id"]}
+            res["bToken"] = sha256_crypt.encrypt(res["user_id"])
+            return res
+
+        if params["auth_type"] == AUTH_LINKEDIN:
+            res = {"user_id": params["user_id"]}
+            res["bToken"] = sha256_crypt.encrypt(res["user_id"])
             return res
 
         else:  # TOKEN BASED THINGY???
@@ -148,33 +184,39 @@ class UserModel(db.Model, ModelMixin):
     def find_or_create_user(cls, params):
         # params is an object holding information
 
-        if params['auth_type'] == AUTH_GITHUB:
-            exists = cls.exists_in_db(params['email'])
+        if params["auth_type"] == AUTH_GITHUB:
+            exists = cls.exists_in_db(params["email"])
             if not exists:
                 cls.create_user(params)
 
             return cls.getUser(params)
 
-        if params['auth_type'] == AUTH_GITLAB:
-            exists = cls.exists_in_db(params['email'])
+        if params["auth_type"] == AUTH_GITLAB:
+            exists = cls.exists_in_db(params["email"])
             if not exists:
                 cls.create_user(params)
             return cls.getUser(params)
 
-        if params['auth_type'] == AUTH_GOOGLE:
-            exists = cls.exists_in_db(params['email'])
+        if params["auth_type"] == AUTH_GOOGLE:
+            exists = cls.exists_in_db(params["email"])
             if not exists:
                 cls.create_user(params)
             return cls.getUser(params)
 
-        if params['auth_type'] == AUTH_SAP:
-            exists = cls.exists_in_db(params['email'])
+        if params["auth_type"] == AUTH_SAP:
+            exists = cls.exists_in_db(params["email"])
             if not exists:
                 cls.create_user(params)
             return cls.getUser(params)
 
-        if params['auth_type'] == AUTH_LOCAL:
-            exists = cls.exists_in_db(params['email'])
+        if params["auth_type"] == AUTH_LINKEDIN:
+            exists = cls.exists_in_db(params["email"])
+            if not exists:
+                cls.create_user(params)
+            return cls.getUser(params)
+
+        if params["auth_type"] == AUTH_LOCAL:
+            exists = cls.exists_in_db(params["email"])
             if not exists:
                 cls.create_user(params)
 
@@ -183,17 +225,23 @@ class UserModel(db.Model, ModelMixin):
 
     @classmethod
     def getUser(cls, params):
-        email = params.get('email')
-        auth_type = params.get('auth_type')
+        email = params.get("email")
+        auth_type = params.get("auth_type")
         if auth_type == AUTH_LOCAL:
-            passwd = params.get('passwd')
-            pass_hash = db.session.query(UserModel.passwd_hash).filter_by(email_address=email).first()
+            passwd = params.get("passwd")
+            pass_hash = (
+                db.session.query(UserModel.passwd_hash)
+                .filter_by(email_address=email)
+                .first()
+            )
             if pass_hash[0] is None:  # Access the first element of the tuple
                 return {"success": False, "error": "Incorrect Password"}
             correct_credentials = sha256_crypt.verify(passwd, pass_hash[0])
             if correct_credentials:
                 # returning an object for the express server to create the jwt token
-                user = db.session.query(UserModel).filter_by(email_address=email).first()
+                user = (
+                    db.session.query(UserModel).filter_by(email_address=email).first()
+                )
                 return {"success": True, "user_id": str(user.uuid)}
             else:
                 return {"success": False, "error": "Incorrect Password"}
@@ -215,16 +263,25 @@ class UserModel(db.Model, ModelMixin):
             user = db.session.query(UserModel).filter_by(email_address=email).first()
             return {"user_id": str(user.uuid)}
 
+        if auth_type == AUTH_LINKEDIN:
+            user = db.session.query(UserModel).filter_by(email_address=email).first()
+            return {"user_id": str(user.uuid)}
+
         else:
             return False
 
     @classmethod
     def delete_user(cls, user_uuid):
 
-        user_to_delete_exists = db.session.query(UserModel.uuid).filter_by(uuid=user_uuid).first() is not None
+        user_to_delete_exists = (
+            db.session.query(UserModel.uuid).filter_by(uuid=user_uuid).first()
+            is not None
+        )
 
         if user_to_delete_exists:
-            to_delete_entry = db.session.query(UserModel).filter_by(uuid=user_uuid).first()
+            to_delete_entry = (
+                db.session.query(UserModel).filter_by(uuid=user_uuid).first()
+            )
             user_id = to_delete_entry.id
             print(to_delete_entry, flush=True)
             db.session.delete(to_delete_entry)
@@ -236,10 +293,15 @@ class UserModel(db.Model, ModelMixin):
     @classmethod
     def update_user_role(cls, user_uuid, user_role):
 
-        user_to_update_exists = db.session.query(UserModel.uuid).filter_by(uuid=user_uuid).first() is not None
+        user_to_update_exists = (
+            db.session.query(UserModel.uuid).filter_by(uuid=user_uuid).first()
+            is not None
+        )
 
         if user_to_update_exists:
-            to_delete_entry = db.session.query(UserModel).filter_by(uuid=user_uuid).first()
+            to_delete_entry = (
+                db.session.query(UserModel).filter_by(uuid=user_uuid).first()
+            )
             user_id = to_delete_entry.id
             UsersRoles.update_user_role(user_id, user_role)
             return "true"
@@ -259,19 +321,33 @@ class UserModel(db.Model, ModelMixin):
         if not email or len(email) == 0:
             return False
         else:
-            return db.session.query(UserModel.email_address).filter_by(email_address=email).first() is not None
+            return (
+                db.session.query(UserModel.email_address)
+                .filter_by(email_address=email)
+                .first()
+                is not None
+            )
 
     @classmethod
     def is_email_valid(cls, email):
-        is_email_exists = db.session.query(UserModel).filter_by(
-            email_address=email).first() is not None
+        is_email_exists = (
+            db.session.query(UserModel).filter_by(email_address=email).first()
+            is not None
+        )
 
         if is_email_exists:
-            user_email_valid = db.session.query(UserModel).filter_by(email_address=email).first()
+            user_email_valid = (
+                db.session.query(UserModel).filter_by(email_address=email).first()
+            )
             if not user_email_valid.email_valid:
                 return False
             else:
-                return db.session.query(UserModel.email_address).filter_by(email_address=email).first() is not None
+                return (
+                    db.session.query(UserModel.email_address)
+                    .filter_by(email_address=email)
+                    .first()
+                    is not None
+                )
 
     # This method should only be allowed to be used for users with role ADMIN!
     @classmethod
@@ -291,7 +367,7 @@ class UserModel(db.Model, ModelMixin):
     def create_user(cls, params):
         # generic user function
         # we receive params from server and then decide what to do
-        auth_type = params['auth_type']
+        auth_type = params["auth_type"]
         if auth_type == AUTH_LOCAL:
             res = cls.create_user_from_email(params)
             return res
@@ -303,16 +379,18 @@ class UserModel(db.Model, ModelMixin):
             return cls.create_user_google(params)
         if auth_type == AUTH_SAP:
             return cls.create_user_sap(params)
+        if auth_type == AUTH_LINKEDIN:
+            return cls.create_user_linkedin(params)
 
     @classmethod
     def create_user_github(cls, params):
         new_entry = UserModel()
-        new_entry.auth_type = params['auth_type']
-        new_entry.display_name = params['display_name']
-        new_entry.email_address = params['email']
-        new_entry.email_valid = params['email_valid']
+        new_entry.auth_type = params["auth_type"]
+        new_entry.display_name = params["display_name"]
+        new_entry.email_address = params["email"]
+        new_entry.email_valid = params["email_valid"]
         # // assign default role
-        _user_role = Role.query.filter(Role.name == 'Public User').first()
+        _user_role = Role.query.filter(Role.name == "Public User").first()
         new_entry.roles = [_user_role]  # default user role
         # add to db
         db.session.add(new_entry)
@@ -321,12 +399,12 @@ class UserModel(db.Model, ModelMixin):
     @classmethod
     def create_user_gitlab(cls, params):
         new_entry = UserModel()
-        new_entry.auth_type = params['auth_type']
-        new_entry.display_name = params['display_name']
-        new_entry.email_address = params['email']
-        new_entry.email_valid = params['email_valid']
+        new_entry.auth_type = params["auth_type"]
+        new_entry.display_name = params["display_name"]
+        new_entry.email_address = params["email"]
+        new_entry.email_valid = params["email_valid"]
         # // assign default role
-        _user_role = Role.query.filter(Role.name == 'Public User').first()
+        _user_role = Role.query.filter(Role.name == "Public User").first()
         new_entry.roles = [_user_role]  # default user role
         # add to db
         db.session.add(new_entry)
@@ -335,12 +413,12 @@ class UserModel(db.Model, ModelMixin):
     @classmethod
     def create_user_google(cls, params):
         new_entry = UserModel()
-        new_entry.auth_type = params['auth_type']
-        new_entry.display_name = params['display_name']
-        new_entry.email_address = params['email']
-        new_entry.email_valid = params['email_valid']
+        new_entry.auth_type = params["auth_type"]
+        new_entry.display_name = params["display_name"]
+        new_entry.email_address = params["email"]
+        new_entry.email_valid = params["email_valid"]
         # // assign default role
-        _user_role = Role.query.filter(Role.name == 'Public User').first()
+        _user_role = Role.query.filter(Role.name == "Public User").first()
         new_entry.roles = [_user_role]  # default user role
         # add to db
         db.session.add(new_entry)
@@ -349,12 +427,26 @@ class UserModel(db.Model, ModelMixin):
     @classmethod
     def create_user_sap(cls, params):
         new_entry = UserModel()
-        new_entry.auth_type = params['auth_type']
-        new_entry.display_name = params['display_name']
-        new_entry.email_address = params['email']
-        new_entry.email_valid = params['email_valid']
+        new_entry.auth_type = params["auth_type"]
+        new_entry.display_name = params["display_name"]
+        new_entry.email_address = params["email"]
+        new_entry.email_valid = params["email_valid"]
         # // assign default role
-        _user_role = Role.query.filter(Role.name == 'Public User').first()
+        _user_role = Role.query.filter(Role.name == "Public User").first()
+        new_entry.roles = [_user_role]  # default user role
+        # add to db
+        db.session.add(new_entry)
+        db.session.commit()
+
+    @classmethod
+    def create_user_linkedin(cls, params):
+        new_entry = UserModel()
+        new_entry.auth_type = params["auth_type"]
+        new_entry.display_name = params["display_name"]
+        new_entry.email_address = params["email"]
+        new_entry.email_valid = params["email_valid"]
+        # // assign default role
+        _user_role = Role.query.filter(Role.name == "Public User").first()
         new_entry.roles = [_user_role]  # default user role
         # add to db
         db.session.add(new_entry)
@@ -364,36 +456,52 @@ class UserModel(db.Model, ModelMixin):
     def create_user_from_email(cls, params):
         # validate email params:
         valid = False
-        if 'username' in params.keys():
-            if 'password' in params.keys():
+        if "username" in params.keys():
+            if "password" in params.keys():
                 valid = True
 
         if valid:
             # check if user already exists
-            if cls.exists_in_db(params['username']):
-                return {"task": "create user from email", "success": False, "error": "Email already registered"}
+            if cls.exists_in_db(params["username"]):
+                return {
+                    "task": "create user from email",
+                    "success": False,
+                    "error": "Email already registered",
+                }
 
             new_entry = UserModel()
-            new_entry.auth_type = params['auth_type']
-            new_entry.display_name = params['displayName']
+            new_entry.auth_type = params["auth_type"]
+            new_entry.display_name = params["displayName"]
             # // assign default role
-            _user_role = Role.query.filter(Role.name == 'Public User').first()
+            _user_role = Role.query.filter(Role.name == "Public User").first()
             new_entry.roles = [_user_role]  # default user role
 
-            new_entry.email_address = params['username']
-            passwd = params['password']
+            new_entry.email_address = params["username"]
+            passwd = params["password"]
             if len(passwd) == 0:
-                return {"task": "create user from email", "success": False, "error": "Something Went wrong"}
+                return {
+                    "task": "create user from email",
+                    "success": False,
+                    "error": "Something Went wrong",
+                }
 
             new_entry.passwd_hash = sha256_crypt.encrypt(passwd)
 
             # add to db
             db.session.add(new_entry)
             db.session.commit()
-            return {"task": "create user from email", "success": True, "user_id": str(new_entry.uuid),
-                    "bToken": sha256_crypt.encrypt(str(new_entry.uuid))}
+            return {
+                "task": "create user from email",
+                "success": True,
+                "user_id": str(new_entry.uuid),
+                "bToken": sha256_crypt.encrypt(str(new_entry.uuid)),
+            }
         else:
-            return {"task": "create user from email", "success": False, "error": "Invalid Parameters"}
+            return {
+                "task": "create user from email",
+                "success": False,
+                "error": "Invalid Parameters",
+            }
 
     @classmethod
     def update_user_settings(cls, user_id, token, params):
@@ -404,7 +512,7 @@ class UserModel(db.Model, ModelMixin):
                     user = UserModel.query.filter_by(uuid=user_id).first()
                     # todo validate if thing exists at all? but should be
                     # todo some mappings of the params to the individual entry
-                    user.display_name = params['username']
+                    user.display_name = params["username"]
                     db.session.commit()
 
                     return {"success": True}
@@ -422,15 +530,16 @@ class UserModel(db.Model, ModelMixin):
                 token_valid = sha256_crypt.verify(user_id, token)
 
                 if token_valid:
-
                     # todo : what does a user need in his profile????
-                    res = {"user": {"name": user.display_name,
-                                    "email": user.email_address,
-                                    "auth_type": user.auth_type,
-                                    "valid_email": user.email_valid,
-                                    "gravatarId": gravatar_id,
-                                    }
-                           }
+                    res = {
+                        "user": {
+                            "name": user.display_name,
+                            "email": user.email_address,
+                            "auth_type": user.auth_type,
+                            "valid_email": user.email_valid,
+                            "gravatarId": gravatar_id,
+                        }
+                    }
                     return res
                     # todo: request project information
                 else:
@@ -441,17 +550,15 @@ class UserModel(db.Model, ModelMixin):
         else:
             # just the view of a profile
 
-            res = {"user": {"name": user.display_name,
-                            "gravatarId": gravatar_id
-                            }
-                   }
+            res = {"user": {"name": user.display_name, "gravatarId": gravatar_id}}
             # todo: request project information
             return res
 
     @classmethod
     def edit_email_valid(cls, uuid):
-        user_to_update_exists = db.session.query(UserModel).filter_by(
-            uuid=uuid).first() is not None
+        user_to_update_exists = (
+            db.session.query(UserModel).filter_by(uuid=uuid).first() is not None
+        )
 
         if user_to_update_exists:
             user_email_valid = db.session.query(UserModel).filter_by(uuid=uuid).first()
@@ -461,8 +568,9 @@ class UserModel(db.Model, ModelMixin):
 
     @classmethod
     def update_password(cls, uuid, password):
-        user_to_update_exists = db.session.query(UserModel).filter_by(
-            uuid=uuid).first() is not None
+        user_to_update_exists = (
+            db.session.query(UserModel).filter_by(uuid=uuid).first() is not None
+        )
 
         if user_to_update_exists:
             user_password = db.session.query(UserModel).filter_by(uuid=uuid).first()
@@ -471,16 +579,25 @@ class UserModel(db.Model, ModelMixin):
             db.session.commit()
             return {"success": True, "message": "Password changed successfully "}
 
-        return {"success": False, "message": "something went wrong please try again after some time"}
+        return {
+            "success": False,
+            "message": "something went wrong please try again after some time",
+        }
 
     @classmethod
     def is_email_exists(cls, email):
-        email_exists = db.session.query(UserModel).filter_by(
-            email_address=email).first() is not None
+        email_exists = (
+            db.session.query(UserModel).filter_by(email_address=email).first()
+            is not None
+        )
         if email_exists:
             user = db.session.query(UserModel).filter_by(email_address=email).first()
-            return {"success": True, "message": "Email is exist", "user_id": str(user.uuid),
-                    "display_name": str(user.display_name)}
+            return {
+                "success": True,
+                "message": "Email is exist",
+                "user_id": str(user.uuid),
+                "display_name": str(user.display_name),
+            }
 
         return {"success": False, "message": "Email does not exist"}
 
@@ -488,9 +605,15 @@ class UserModel(db.Model, ModelMixin):
     def get_user_detail_by_id(cls, user_id):
         user = UserModel.query.filter_by(id=user_id).first()
         if user:
-            userDetailObject = {"uuid": user.uuid, "display_name": user.display_name,
-                                "email_address": user.email_address, "auth_type": user.auth_type,
-                                "email_valid": user.email_valid, "active": user.active, "role": user.roles[0].name}
+            userDetailObject = {
+                "uuid": user.uuid,
+                "display_name": user.display_name,
+                "email_address": user.email_address,
+                "auth_type": user.auth_type,
+                "email_valid": user.email_valid,
+                "active": user.active,
+                "role": user.roles[0].name,
+            }
             return userDetailObject
         return None
 
@@ -502,14 +625,15 @@ class UserModel(db.Model, ModelMixin):
             allSystem_Admin = []
             for user in users:
                 if user.roles[0].name == "System Admin":
-                    system_admin = {"uuid": user.uuid,
-                                    "auth_type": user.auth_type,
-                                    "display_name": user.display_name,
-                                    "email_valid": user.email_valid,
-                                    "email_address": user.email_address,
-                                    "role": user.roles[0].name
-                                    }
+                    system_admin = {
+                        "uuid": user.uuid,
+                        "auth_type": user.auth_type,
+                        "display_name": user.display_name,
+                        "email_valid": user.email_valid,
+                        "email_address": user.email_address,
+                        "role": user.roles[0].name,
+                    }
                     allSystem_Admin.append(system_admin)
             return jsonify(allSystem_Admin)
         else:
-            return jsonify({'error': "No system admin found"})
+            return jsonify({"error": "No system admin found"})
