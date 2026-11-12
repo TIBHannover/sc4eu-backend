@@ -11,14 +11,14 @@ from .push import send_push
 VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY")
 CLIENT_PUBLIC_URL = os.environ.get("CLIENT_PUBLIC_URL")
 
-def make_notify(db_session, payload, user_names: list[str] | None = None):
+def make_notify(db_session, payload, user_uuids: list | None = None):
     query = db_session.query(PushSubscriptionModel)
 
-    if user_names:
+    if user_uuids:
         mentioned_ids = [
             user.id
             for user in db_session.query(UserModel).filter(
-                UserModel.display_name.in_(user_names)
+                UserModel.uuid.in_(user_uuids)
             )
         ]
         query = query.filter(PushSubscriptionModel.user_id.in_(mentioned_ids))
@@ -89,7 +89,7 @@ def notify_term_update(db_session, title, body, term_uuid, type):
     make_notify(db_session, payload)
 
 
-def notify_new_comment(db_session, title, term_uuid, mentioned_user_names):
+def notify_new_comment(db_session, title, term_uuid, mentioned_user_uuids):
     payload = {
         "title": title,
         "body": "You were mentioned in a term",
@@ -97,7 +97,7 @@ def notify_new_comment(db_session, title, term_uuid, mentioned_user_names):
         "type": "COMMENTS_ADDED",
     }
 
-    make_notify(db_session, payload, mentioned_user_names)
+    make_notify(db_session, payload, mentioned_user_uuids)
 
 
 def notify_new_vote(db_session, vote):

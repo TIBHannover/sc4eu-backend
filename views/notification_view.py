@@ -19,7 +19,7 @@ class PushSubscriptionKeys(BaseModel):
     auth: str
 
 class SubscribeObject(BaseModel):
-    username: str
+    user_uuid: UUID
     endpoint: str
     keys: PushSubscriptionKeys
     reason: Optional[List[str]] = None
@@ -35,7 +35,7 @@ class UpdateTermObject(BaseModel):
 class NewMentionCommentObject(BaseModel):
     title: str
     term_uuid: UUID
-    mentioned_user_names: List[str]
+    mentioned_user_uuids: List[UUID]
 
 @notification_router.post("/subscribe")
 async def create_new_push(
@@ -46,11 +46,11 @@ async def create_new_push(
 ):
     print(f"Endpoint called with {payload.endpoint}")
 
-    user = db_session.query(UserModel).filter_by(display_name=payload.username).first()
+    user = db_session.query(UserModel).filter_by(uuid=payload.user_uuid).first()
     
     if not user:
         raise HTTPException(
-            status_code=400, detail=f"User with username {payload.username} not found")
+            status_code=400, detail=f"User {payload.user_uuid} not found")
 
     existing_sub = db_session.query(PushSubscriptionModel).filter_by(endpoint=payload.endpoint).first()
 
@@ -94,4 +94,4 @@ async def notify_new_comments(
 ):
     print(f"Endpoint called with {payload.title}")
 
-    notify_new_comment(db_session, payload.title, payload.term_uuid, payload.mentioned_user_names)
+    notify_new_comment(db_session, payload.title, payload.term_uuid, payload.mentioned_user_uuids)
