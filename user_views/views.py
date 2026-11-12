@@ -187,6 +187,8 @@ def admin_dashboard(reqargs):
                     "email_valid": user.email_valid,
                     "email_address": user.email_address,
                     "role": user.roles[0].name,
+                    "active": user.active,
+                    "anonymized_at": user.anonymized_at
                 }
                 for user in users
             ]
@@ -375,6 +377,8 @@ def get_users_all():
                     "email_valid": user.email_valid,
                     "email_address": user.email_address,
                     "role": user.roles[0].name,
+                    "active": user.active,
+                    "anonymized_at": user.anonymized_at
                 }
                 for user in users
             ]

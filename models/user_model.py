@@ -7,12 +7,14 @@ from ._base import ModelMixin
 from .role_model import Role
 from .user_roles import UsersRoles
 
+from sqlalchemy import false as sa_false
 from sqlalchemy.dialects.postgresql.base import UUID
+
 import os
+import string
+import random
+from datetime import datetime, UTC
 
-# do we import session here? <<<<
-
-# CONSTANTS DEF
 AUTH_GITHUB = "AUTH_GITHUB"
 AUTH_LOCAL = "AUTH_LOCAL"
 AUTH_TOKEN = "AUTH_TOKEN"
@@ -34,7 +36,16 @@ class UserModel(db.Model, ModelMixin):
     email_valid = db.Column("email_valid", db.Boolean, default=False)
     active = db.Column(
         "account_active", db.Boolean, default=True
-    )  # admin could disable accounts
+    )
+
+    # opt-in: stays False until the user explicitly agrees
+    linkedin_publication_consent = db.Column(
+        "linkedin_publication_consent", db.Boolean, nullable=False, default=False, server_default=sa_false()
+    )
+
+    anonymized_at = db.Column("anonymized_at", db.DateTime(timezone=True), nullable=True)
+    deletion_requested_at = db.Column("deletion_requested_at", db.DateTime(timezone=True), nullable=True)
+    deleted_at = db.Column("deleted_at", db.DateTime(timezone=True), nullable=True)
 
     # Relationships
     roles = db.relationship(
@@ -272,23 +283,38 @@ class UserModel(db.Model, ModelMixin):
 
     @classmethod
     def delete_user(cls, user_uuid):
-
-        user_to_delete_exists = (
-            db.session.query(UserModel.uuid).filter_by(uuid=user_uuid).first()
-            is not None
+        user = (
+            db.session.query(UserModel)
+            .filter_by(uuid=user_uuid)
+            .with_for_update()
+            .one_or_none()
         )
 
-        if user_to_delete_exists:
-            to_delete_entry = (
-                db.session.query(UserModel).filter_by(uuid=user_uuid).first()
-            )
-            user_id = to_delete_entry.id
-            print(to_delete_entry, flush=True)
-            db.session.delete(to_delete_entry)
+        if user is None:
+            return {"success": False, "reason": "User not found"}
+        if not user.active:
+            return {"success": True, "reason": "User already deactivate"}
+
+        try:
+            unique_string = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+            deleted_name = f"UserDeleted-{unique_string}"
+            user.display_name = deleted_name
+            user.email_address = f"{deleted_name}@deleted.invalid"
+            user.passwd_hash = None
+            user.active = False
+            user.subscriptions.clear()
+            user.anonymized_at = datetime.now(UTC)
+            user.linkedin_publication_consent = False
+
+            user_role = UsersRoles.query.filter_by(user_id=user.id).first()
+            if user_role:
+                user_role.role_id = 1
+
             db.session.commit()
-            UsersRoles.delete_user_role(user_id)
-            return {"success": "true"}
-        return {"success": "false"}
+            return {"success": True}
+        except:
+            db.session.rollback()
+            raise
 
     @classmethod
     def update_user_role(cls, user_uuid, user_role):
@@ -512,7 +538,10 @@ class UserModel(db.Model, ModelMixin):
                     user = UserModel.query.filter_by(uuid=user_id).first()
                     # todo validate if thing exists at all? but should be
                     # todo some mappings of the params to the individual entry
-                    user.display_name = params["username"]
+                    if "username" in params:
+                        user.display_name = params["username"]
+                    if "linkedin_publication_consent" in params:
+                        user.linkedin_publication_consent = bool(params["linkedin_publication_consent"])
                     db.session.commit()
 
                     return {"success": True}
@@ -538,6 +567,7 @@ class UserModel(db.Model, ModelMixin):
                             "auth_type": user.auth_type,
                             "valid_email": user.email_valid,
                             "gravatarId": gravatar_id,
+                            "linkedin_publication_consent": bool(user.linkedin_publication_consent),
                         }
                     }
                     return res
